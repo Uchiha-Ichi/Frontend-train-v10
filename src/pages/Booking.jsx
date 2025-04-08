@@ -1,0 +1,257 @@
+import React, { useEffect, useState, useContext } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { toast, ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import {
+  Heading,
+  Box,
+  Text,
+  Container,
+  VStack,
+  Grid,
+  Spinner,
+  Card,
+  Button,
+} from "@chakra-ui/react";
+import { RouteContext } from "../store/RouteContext";
+import { searchTrains } from "../redux/stationSearchSlice";
+import { fetchSeat, selectSeat } from "../redux/seatSlice";
+import { setCurrentTrip } from "../redux/stationSearchSlice";
+import Train from "../components/Train";
+import cart from "../assets/cart.svg";
+
+export default function BookingPage() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { state } = useContext(RouteContext);
+  const { from, to, date } = state;
+  const [activeTripId, setActiveTripId] = useState(null);
+
+  // Use "trips" consistently
+  const trips = useSelector((state) => state.stationSearch?.trips || []);
+  const loading = useSelector((state) => state.stationSearch?.loading);
+  const error = useSelector((state) => state.stationSearch?.error);
+  const carriages = useSelector((state) => state.seat.carriages);
+  const selectedSeats = useSelector((state) => state.seat.selectedSeats);
+  const activeTrip = trips.find((trip) => trip.tripId === activeTripId);
+  const totalPrice = useSelector((state) => state.seat.totalPrice);
+  // console.log(carriages);
+  const handleTransfer = () => {
+    if (selectedSeats.length === 0) {
+      toast.error("Vui lòng chọn ghế trước khi thanh toán !", {
+        position: "bottom-right",
+        autoClose: 4000,
+      });
+      return;
+    }
+    navigate("/info");
+  };
+  const formatTotalPrice = (totalPrice) => {
+    return totalPrice.toLocaleString("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    });
+  };
+
+  useEffect(() => {
+    if (from === to) {
+      toast.error("Ga đi và ga đến không được giống nhau!", {
+        position: "bottom-right",
+        autoClose: 4000,
+      });
+      return;
+    }
+    if (from && to && date) {
+      // console.log("from", from, "to", to);
+
+      dispatch(searchTrains({ from, to, date }))
+        .unwrap()
+        .then(() => {
+          if (error) {
+            toast.error(`Lỗi khi tải chuyến tàu: ${error}`, {
+              position: "bottom-right",
+              autoClose: 4000,
+            });
+            return;
+          }
+          toast.success("Tải danh sách chuyến tàu thành công!", {
+            position: "bottom-right",
+            autoClose: 3000,
+          });
+        })
+        .catch((err) => {
+          toast.error(`Lỗi khi tải chuyến tàu: ${err}`, {
+            position: "bottom-right",
+            autoClose: 4000,
+          });
+          navigate("/");
+        });
+    }
+  }, [dispatch, from, to, date]);
+  useEffect(() => {
+    if (!loading && trips.length === 0) {
+      // Delay một chút nếu muốn có thể nhìn thấy thông báo trước khi redirect
+      setTimeout(() => {
+        navigate('/');
+      }, 2000); // 2 giây sau chuyển trang
+    }
+  }, [loading, trips, navigate]);
+  return (
+    <Box py={12} px={4}>
+      <ToastContainer />
+
+      {/* Hero Section */}
+      <Box textAlign="center" mb={10}>
+        <Heading size="xl" fontWeight="bold">
+          {from} → {to}
+        </Heading>
+        <Text mt={2} color="gray.600">
+          Ngày: {date}
+        </Text>
+      </Box>
+
+      <Container maxW="6xl">
+        {loading && (
+          <Box textAlign="center" my={8}>
+            <Spinner size="lg" />
+            <Text mt={2}>Đang tìm kiếm chuyến tàu...</Text>
+          </Box>
+        )}
+
+        {!loading && error && (
+          <Text color="red.500" textAlign="center" mb={6}>
+            Lỗi: {error}
+          </Text>
+        )}
+
+        {!loading && trips.length === 0 && (
+          <Text textAlign="center" mt={8} >
+            Không có chuyến tàu nào phù hợp.
+          </Text>
+
+        )}
+
+        {!loading && trips.length > 0 && (
+          <Grid
+            templateColumns={{ base: "1fr", md: "1fr 3fr" }}
+            gap={6}
+            alignItems="flex-start"
+          >
+            <Box
+              overflowX={{ base: "auto", md: "visible" }}
+              whiteSpace={{ base: "nowrap", md: "normal" }}
+              display="flex"
+              flexDirection={{ base: "row", md: "column" }}
+              gap={4}
+              pb={{ base: 4, md: 0 }}
+            >
+              <Button
+                onClick={handleTransfer}
+                colorScheme="teal"
+                size="lg"
+                height="auto"
+                display="block"
+                textAlign="left"
+                whiteSpace="normal"
+                px={4}
+                py={4}
+                bg="blue.100"
+                w="100%"
+                borderColor="blue.600"
+                color="black"
+              >
+                <Box>
+                  {selectedSeats.map((seat, index) => (
+                    <Box
+                      key={index}
+                      p={2}
+                      mb={2}
+                      borderWidth="1px"
+                      borderRadius="md"
+                      bg="blue.200"
+                    >
+                      <Text fontWeight="bold">{seat.reservation.trip.train.trainName}</Text>
+                      <Text>{seat.reservation.departureStation.stationName} - {seat.reservation.departureStation.stationName}</Text>
+                      <Text>{seat.departureTime}</Text>
+                      <Text>Toa {seat.stt} - Ghế {seat.seatName}</Text>
+                    </Box>
+                  ))}
+                  <Text fontWeight="bold">
+                    {selectedSeats.length} ghế đã chọn - {formatTotalPrice(totalPrice)}
+                  </Text>
+                </Box>
+              </Button>
+              {trips.map((trip) => (
+                <Card.Root
+                  key={trip.tripId}
+                  minW={{ base: "250px", md: "auto" }}
+                  borderWidth="2px"
+                  borderColor={
+                    trip.tripId === activeTripId ? "blue.500" : "gray.200"
+                  }
+                  bg={trip.tripId === activeTripId ? "blue.50" : "white"}
+                  cursor="pointer"
+                  onClick={() => {
+                    setActiveTripId(trip.tripId);
+                    dispatch(setCurrentTrip(trip));
+                    console.log(
+                      trip.tripId,
+                      trip.departureStation,
+                      trip.arrivalStation
+                    );
+                    dispatch(
+                      fetchSeat({
+                        tripId: trip.tripId,
+                        from: trip.departureStation,
+                        to: trip.arrivalStation,
+                      })
+                    )
+                      .unwrap()
+                      .then(() => {
+                        toast.success("Tải thông tin toa tàu thành công!", {
+                          position: "bottom-right",
+                          autoClose: 3000,
+                        });
+                      })
+                      .catch((err) => {
+                        toast.error(`Lỗi khi tải toa tàu: ${err}`, {
+                          position: "bottom-right",
+                          autoClose: 4000,
+                        });
+                      });
+                  }}
+                  transition="all 0.2s"
+                  _hover={{ shadow: "md" }}
+                >
+                  <Card.Header>
+                    <Heading size="md">
+                      Tàu: {trip.trainName || "Chưa rõ"}
+                    </Heading>
+                  </Card.Header>
+                  <Card.Body>
+                    <VStack align="start" spacing={2}>
+                      <Text>Thời gian đi: {trip.departureTime}</Text>
+                      <Text>Thời gian đến: {trip.arrivalTime}</Text>
+                      <Text>103</Text>
+                    </VStack>
+                  </Card.Body>
+                </Card.Root>
+              ))}
+            </Box>
+
+            {activeTrip && (
+              <Box>
+                <Train
+                  trainConfig={carriages}
+                  tripId={activeTrip.tripId}
+                  arrivalStation={activeTrip.arrivalStation}
+                  departureStation={activeTrip.departureStation}
+                />
+              </Box>
+            )}
+          </Grid>
+        )}
+      </Container>
+    </Box>
+  );
+}
