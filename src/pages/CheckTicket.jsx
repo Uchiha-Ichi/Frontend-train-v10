@@ -6,16 +6,23 @@ import {
   Text,
   Flex,
   Stack,
+  Spinner,
+  SimpleGrid,
 } from "@chakra-ui/react";
-
 import { useState, useEffect } from "react";
-export default function CheckTicket() {
+import { useDispatch, useSelector } from "react-redux";
+import { searchTicketById, searchTicketsByCustomer } from "../redux/checkTicketSlice";
+
+const CheckTicket = () => {
   const [checkType, setCheckType] = useState("ticketId");
   const [ticketId, setTicketId] = useState("");
   const [cccd, setCccd] = useState("");
   const [phone, setPhone] = useState("");
   const [ticketList, setTicketList] = useState([]);
   const [error, setError] = useState("");
+
+  const dispatch = useDispatch();
+  const { tickets, loading, error: reduxError } = useSelector((state) => state.checkTicket);
 
   useEffect(() => {
     setTicketId("");
@@ -25,74 +32,51 @@ export default function CheckTicket() {
     setError("");
   }, [checkType]);
 
-  const handleCheckTicket = async () => {
+  useEffect(() => {
+    if (tickets) {
+      if (Array.isArray(tickets)) setTicketList(tickets);
+      else setTicketList([tickets]);
+    }
+  }, [tickets]);
+
+  useEffect(() => {
+    if (reduxError) {
+      setError(typeof reduxError === "string" ? reduxError : "Có lỗi xảy ra");
+    }
+  }, [reduxError]);
+
+  const handleCheckTicket = () => {
     setError("");
     setTicketList([]);
 
-    let apiUrl = "";
     if (checkType === "ticketId") {
       if (!ticketId) {
         setError("Vui lòng nhập mã vé!");
         return;
       }
-      apiUrl = `http://localhost:8088/api/tickets/${ticketId}`;
+      dispatch(searchTicketById(ticketId));
     } else {
       if (!cccd || !phone) {
         setError("Vui lòng nhập cả CCCD và số điện thoại!");
         return;
       }
-      apiUrl = `http://localhost:8088/api/tickets/user?cccd=${cccd}&phone=${phone}`;
-    }
-
-    try {
-      const response = await fetch(apiUrl);
-      if (!response.ok) throw new Error("Không tìm thấy vé!");
-
-      const data = await response.json();
-      console.log("Dữ liệu API trả về:", data);
-
-      if (checkType === "ticketId") {
-        setTicketList(data ? [data] : []);
-      } else {
-        if (Array.isArray(data) && data.length > 0) {
-          setTicketList(data);
-        } else {
-          setError("Không tìm thấy vé!");
-        }
-      }
-    } catch (err) {
-      setError(err.message);
+      dispatch(searchTicketsByCustomer({ cccd, phone }));
     }
   };
 
-  const getTicketStatus = (status) => {
-    switch (status) {
-      case "1":
-        return "Đã đặt";
-      case "2":
-        return "Đã thanh toán";
-      case "3":
-        return "Đã sử dụng";
-      case "4":
-        return "Đã hủy";
-      default:
-        return "Không xác định";
-    }
+  const findDepartureTime = (trip, departureStation) => {
+    if (!trip?.train?.trainSchedules || !departureStation) return null;
+
+    const schedule = trip.train.trainSchedules.find(
+      (s) => s.station?.stationId === departureStation.stationId
+    );
+
+    return schedule?.arrivalTime || null;
   };
+
   return (
-    <Box
-      maxW="1000px"
-      mx="auto"
-      my={10}
-      p={6}
-      bg="white"
-      borderRadius="10px"
-      boxShadow="md"
-      textAlign="center"
-    >
-      <Heading size="md" mb={5}>
-        Kiểm tra vé
-      </Heading>
+    <Box maxW="1000px" mx="auto" my={10} p={6} bg="white" borderRadius="lg" boxShadow="md">
+      <Heading size="md" mb={5}>Kiểm tra vé</Heading>
 
       <Flex justify="center" gap={4} mb={6}>
         <Button
@@ -132,8 +116,9 @@ export default function CheckTicket() {
             />
           </>
         )}
-        <Button colorScheme="blue" onClick={handleCheckTicket}>
-          Kiểm tra
+        <Button colorScheme="blue" onClick={handleCheckTicket} isDisabled={loading}>
+          {loading ? <Spinner size="sm" mr={2} /> : null}
+          {loading ? "Đang kiểm tra..." : "Kiểm tra"}
         </Button>
       </Stack>
 
@@ -144,64 +129,52 @@ export default function CheckTicket() {
       )}
 
       {ticketList.length > 0 && (
-        <Box mt={8} textAlign="left" bg="gray.50" p={5} borderRadius="md">
-          <Heading size="sm" mb={4}>
-            Danh sách vé
-          </Heading>
-          {ticketList.map((ticket, index) => (
-            <Box key={index} mb={6}>
-              {checkType === "userInfo" && (
-                <Heading size="xs" mb={2}>
-                  Vé {index + 1}
-                </Heading>
-              )}
-              <Text>
-                <strong>Mã vé:</strong> {ticket.ticketId}
-              </Text>
-              <Text>
-                <strong>Hành khách:</strong>{" "}
-                {ticket.passenger?.fullname || "Không có dữ liệu"}
-              </Text>
-              <Text>
-                <strong>Tên tàu:</strong>{" "}
-                {ticket.trip?.train?.trainName || "Không có dữ liệu"}
-              </Text>
-              <Text>
-                <strong>Giờ khởi hành:</strong>{" "}
-                {ticket.trip?.tripDate
-                  ? `${new Date(ticket.trip.tripDate).toLocaleDateString("vi-VN")} - ${ticket.trip?.train?.departureTime || "Chưa có giờ"}`
-                  : "Không có dữ liệu"}
-              </Text>
-              <Text>
-                <strong>Vị trí ghế:</strong>{" "}
-                {ticket.seat?.seatNumber || "?"}
-                {" - Tầng " + (ticket.seat?.level || "?")}
-                {" - Toa " + (ticket.seat?.carriageList?.carriageListId || "?")}
-                {" - Khoang " + (ticket.seat?.carriageList?.compartment?.compartmentName || "?")}
-              </Text>
-              <Text>
-                <strong>Giá:</strong>{" "}
-                {ticket.totalPrice
-                  ? `${ticket.totalPrice} VND`
-                  : "Chưa có giá"}
-              </Text>
-              <Text>
-                <strong>Ga đi:</strong>{" "}
-                {ticket.departureStation?.stationName || "Không có dữ liệu"}
-              </Text>
-              <Text>
-                <strong>Ga đến:</strong>{" "}
-                {ticket.arrivalStation?.stationName || "Không có dữ liệu"}
-              </Text>
-              <Text>
-                <strong>Trạng thái vé:</strong>{" "}
-                {getTicketStatus(ticket.ticketStatus)}
-              </Text>
-              <Divider my={4} />
-            </Box>
-          ))}
+        <Box mt={8} bg="gray.50" p={5} borderRadius="md">
+          {checkType === "userInfo" && (
+            <Heading size="lg" mb={4}>Danh sách vé</Heading>
+          )}
+          <SimpleGrid columns={{ base: 1, md: checkType === "ticketId" ? 1 : 2 }} spacing={6}>
+            {ticketList.map((ticket, index) => {
+              const res = ticket.reservation;
+              const trip = res?.trip;
+              const seat = res?.seat;
+              const carriage = seat?.carriageList;
+              const compartment = carriage?.compartment;
+
+              return (
+                <Box key={index} w="100%" p={4} borderWidth="1px" borderRadius="md" bg="white" shadow="sm">
+                  <Stack spacing={2} textAlign="left">
+                    {checkType === "userInfo" && (
+                      <Text fontSize="md" color="red.500" fontWeight="bold">
+                        Vé {index + 1}
+                      </Text>
+                    )}
+                    <Text><Text as="span" color="blue.700" fontWeight="semibold">Mã vé:</Text> {ticket.ticketId}</Text>
+                    <Text><Text as="span" color="blue.700" fontWeight="semibold">Hành khách:</Text> {ticket.passenger?.fullname || "Không có dữ liệu"}</Text>
+                    <Text><Text as="span" color="blue.700" fontWeight="semibold">Tên tàu:</Text> {trip?.train?.trainName || "Không có dữ liệu"}</Text>
+                    <Text>
+                      <Text as="span" color="blue.700" fontWeight="semibold">Giờ khởi hành:</Text>{" "}
+                      {trip?.tripDate
+                        ? `${new Date(trip.tripDate).toLocaleDateString("vi-VN")} - ${findDepartureTime(trip, res?.departureStation) || "Chưa có giờ"}`
+                        : "Không có dữ liệu"}
+                    </Text>
+                    <Text>
+                      <Text as="span" color="blue.700" fontWeight="semibold">Vị trí ghế:</Text>{" "}
+                      {seat?.seatNumber || "?"} - Tầng {seat?.floor || "?"} - Toa {carriage?.carriageListId || "?"} - Khoang {compartment?.compartmentName || "?"}
+                    </Text>
+                    <Text><Text as="span" color="blue.700" fontWeight="semibold">Giá:</Text> {ticket.totalPrice ? `${ticket.totalPrice} VND` : "Chưa có giá"}</Text>
+                    <Text><Text as="span" color="blue.700" fontWeight="semibold">Ga đi:</Text> {res?.departureStation?.stationName || "Không có dữ liệu"}</Text>
+                    <Text><Text as="span" color="blue.700" fontWeight="semibold">Ga đến:</Text> {res?.arrivalStation?.stationName || "Không có dữ liệu"}</Text>
+                    <Text><Text as="span" color="blue.700" fontWeight="semibold">Trạng thái vé:</Text> {ticket.ticketStatus || "Không có dữ liệu"}</Text>
+                  </Stack>
+                </Box>
+              );
+            })}
+          </SimpleGrid>
         </Box>
       )}
     </Box>
   );
-}
+};
+
+export default CheckTicket;
