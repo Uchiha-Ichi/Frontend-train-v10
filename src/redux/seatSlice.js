@@ -42,6 +42,7 @@ const seatSlice = createSlice({
       );
 
       if (seatIndex !== -1) {
+        console.log("Ghế đã được xoa:", seatName);
         // Nếu ghế đã được chọn, bỏ chọn ghế và trừ đi giá trị của ghế
         state.selectedSeats = state.selectedSeats.filter(
           (seat) => seat.seatId !== seatId

@@ -3,6 +3,9 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { featchTicketType } from "../redux/ticketType";
+import { clearSelectedSeats, selectSeat } from "../redux/seatSlice";
+import { deleteReserveTicket } from "../redux/ticketReservationSlice";
+import { Link } from "react-router-dom";
 import {
   Box,
   Flex,
@@ -21,7 +24,7 @@ import { groupBy } from "es-toolkit"
 // import { DeleteIcon } from "@chakra-ui/icons";
 // import { bookTickets, testTicket } from "../../redux/ticketSlice";
 export default function Infomation() {
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const selectedSeats = useSelector((state) => state.seat.selectedSeats);
 
   const { types, loading, error } = useSelector((state) => state.ticketType);
@@ -87,6 +90,42 @@ export default function Infomation() {
     }
   };
 
+  const handleDeleteAllTicketReservation = async () => {
+    for (let i = 0; i < selectedSeats.length; i++) {
+
+      let ticketReservationDTO = {
+        seat: selectedSeats[i].seatId,
+        trip: selectedSeats[i].reservation.trip.tripId,
+        departureStation: selectedSeats[i].reservation.departureStation.stationName,
+        arrivalStation: selectedSeats[i].reservation.arrivalStation.stationName
+      };
+      await dispatch(deleteReserveTicket(ticketReservationDTO))
+    }
+    dispatch(clearSelectedSeats());
+
+  }
+  const handleDeleteTicketReservation = async (index) => {
+    let ticketReservationDTO = {
+      seat: selectedSeats[index].seatId,
+      trip: selectedSeats[index].reservation.trip.tripId,
+      departureStation: selectedSeats[index].reservation.departureStation.stationName,
+      arrivalStation: selectedSeats[index].reservation.arrivalStation.stationName
+    };
+    await dispatch(deleteReserveTicket(ticketReservationDTO))
+    await dispatch(selectSeat({
+      seatId: selectedSeats[index].seatId,
+      seatName: selectedSeats[index].seatNumber,
+      stt: null,
+      ticketPrice: selectedSeats[index].ticketPrice,
+      reservation: null,
+      departureTime: null,
+    }));
+    setTickets((prevTickets) =>
+      prevTickets.filter((t) => t.ticketReservation.seat.seatId !== selectedSeats[index].seatId)
+    );
+  }
+
+
   const handlePrice = (category, index) => {
     // console.log("category", category.value);
     let newPrice = selectedSeats[index].ticketPrice; // Giá mặc định
@@ -117,24 +156,13 @@ export default function Infomation() {
   };
   console.log(types);
 
+
   const collection = createListCollection({
     items: types.map(type => ({
       label: type.ticketTypeName,
       value: type.ticketTypeName,
       discountRate: type.discountRate
     })),
-    // items: [
-    //   { label: "Naruto", value: "naruto", category: "Anime" },
-    //   { label: "One Piece", value: "one-piece", category: "Anime" },
-    //   { label: "Dragon Ball", value: "dragon-ball", category: "Anime" },
-    //   {
-    //     label: "The Shawshank Redemption",
-    //     value: "the-shawshank-redemption",
-    //     category: "Movies",
-    //   },
-    //   { label: "The Godfather", value: "the-godfather", category: "Movies" },
-    //   { label: "The Dark Knight", value: "the-dark-knight", category: "Movies" },
-    // ],
   })
   const getTotalAmount = () => {
     return tickets.reduce((sum, ticket) => sum + (ticket?.totalPrice || 0), 0);
@@ -209,14 +237,16 @@ export default function Infomation() {
               <Table.Cell>Giảm {(tickets[index]?.discount * 100).toString()} %</Table.Cell>
 
               <Table.Cell>{tickets[index]?.totalPrice.toLocaleString()} VND</Table.Cell>
-              <Table.Cell><Button bg="gray.500" cursor="pointer" /></Table.Cell>
+              <Table.Cell><Button bg="gray.500" cursor="pointer"
+                onClick={() => handleDeleteTicketReservation(index)} /></Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>
       </Table.Root>
 
       <Flex justify="flex-end" my={4} align="center" gap={2}>
-        <Button size="sm" colorScheme="gray">Xóa tất cả các vé</Button>
+        <Button size="sm" colorScheme="gray" onClick={handleDeleteAllTicketReservation} as={Link}
+          to="/" >Xóa tất cả các vé</Button>
         {/* <Input placeholder="Nhập mã giảm giá" size="sm" width="200px" />
         <Button size="sm" colorScheme="blue">Áp dụng</Button> */}
       </Flex>

@@ -35,7 +35,7 @@ export default function BookingPage() {
   const selectedSeats = useSelector((state) => state.seat.selectedSeats);
   const activeTrip = trips.find((trip) => trip.tripId === activeTripId);
   const totalPrice = useSelector((state) => state.seat.totalPrice);
-  // console.log(carriages);
+  console.log(date);
   const handleTransfer = () => {
     if (selectedSeats.length === 0) {
       toast.error("Vui lòng chọn ghế trước khi thanh toán !", {
@@ -54,26 +54,19 @@ export default function BookingPage() {
   };
 
   useEffect(() => {
-    if (from === to) {
-      toast.error("Ga đi và ga đến không được giống nhau!", {
-        position: "bottom-right",
-        autoClose: 4000,
-      });
-      return;
-    }
+    // if (from === to) {
+    //   toast.error("Ga đi và ga đến không được giống nhau!", {
+    //     position: "bottom-right",
+    //     autoClose: 4000,
+    //   });
+    //   return;
+    // }
     if (from && to && date) {
-      // console.log("from", from, "to", to);
+      console.log("from", from, "to", to);
 
       dispatch(searchTrains({ from, to, date }))
         .unwrap()
         .then(() => {
-          if (error) {
-            toast.error(`Lỗi khi tải chuyến tàu: ${error}`, {
-              position: "bottom-right",
-              autoClose: 4000,
-            });
-            return;
-          }
           toast.success("Tải danh sách chuyến tàu thành công!", {
             position: "bottom-right",
             autoClose: 3000,
@@ -84,18 +77,13 @@ export default function BookingPage() {
             position: "bottom-right",
             autoClose: 4000,
           });
-          navigate("/");
+          setTimeout(() => {
+            navigate("/");
+          }, 2000);
         });
     }
   }, [dispatch, from, to, date]);
-  useEffect(() => {
-    if (!loading && trips.length === 0) {
-      // Delay một chút nếu muốn có thể nhìn thấy thông báo trước khi redirect
-      setTimeout(() => {
-        navigate('/');
-      }, 2000); // 2 giây sau chuyển trang
-    }
-  }, [loading, trips, navigate]);
+  console.log("selectedSeats", selectedSeats);
   return (
     <Box py={12} px={4}>
       <ToastContainer />
@@ -125,10 +113,9 @@ export default function BookingPage() {
         )}
 
         {!loading && trips.length === 0 && (
-          <Text textAlign="center" mt={8} >
+          <Text textAlign="center" mt={8}>
             Không có chuyến tàu nào phù hợp.
           </Text>
-
         )}
 
         {!loading && trips.length > 0 && (
@@ -159,28 +146,46 @@ export default function BookingPage() {
                 w="100%"
                 borderColor="blue.600"
                 color="black"
+                isDisabled={selectedSeats.length === 0} // disable khi không có vé
               >
                 <Box>
-                  {selectedSeats.map((seat, index) => (
-                    <Box
-                      key={index}
-                      p={2}
-                      mb={2}
-                      borderWidth="1px"
-                      borderRadius="md"
-                      bg="blue.200"
-                    >
-                      <Text fontWeight="bold">{seat.reservation.trip.train.trainName}</Text>
-                      <Text>{seat.reservation.departureStation.stationName} - {seat.reservation.departureStation.stationName}</Text>
-                      <Text>{seat.departureTime}</Text>
-                      <Text>Toa {seat.stt} - Ghế {seat.seatName}</Text>
-                    </Box>
-                  ))}
-                  <Text fontWeight="bold">
-                    {selectedSeats.length} ghế đã chọn - {formatTotalPrice(totalPrice)}
-                  </Text>
+                  {selectedSeats.length === 0 ? (
+                    <Text fontWeight="bold" color="gray.500">
+                      Chưa chọn vé nào
+                    </Text>
+                  ) : (
+                    <>
+                      {selectedSeats.map((seat, index) => (
+                        <Box
+                          key={index}
+                          p={2}
+                          mb={2}
+                          borderWidth="1px"
+                          borderRadius="md"
+                          bg="blue.200"
+                        >
+                          <Text fontWeight="bold">
+                            {seat.reservation.trip.train.trainName}
+                          </Text>
+                          <Text>
+                            {seat.reservation.departureStation.stationName} -{" "}
+                            {seat.reservation.arrivalStation.stationName}
+                          </Text>
+                          <Text>{seat.departureTime}</Text>
+                          <Text>
+                            Toa {seat.stt} - Ghế {seat.seatName}
+                          </Text>
+                        </Box>
+                      ))}
+                      <Text fontWeight="bold">
+                        {selectedSeats.length} ghế đã chọn -{" "}
+                        {formatTotalPrice(totalPrice)}
+                      </Text>
+                    </>
+                  )}
                 </Box>
               </Button>
+
               {trips.map((trip) => (
                 <Card.Root
                   key={trip.tripId}
@@ -243,9 +248,7 @@ export default function BookingPage() {
               <Box>
                 <Train
                   trainConfig={carriages}
-                  tripId={activeTrip.tripId}
-                  arrivalStation={activeTrip.arrivalStation}
-                  departureStation={activeTrip.departureStation}
+
                 />
               </Box>
             )}

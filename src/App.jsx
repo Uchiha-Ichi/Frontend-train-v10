@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Routes,
   Route,
@@ -29,14 +30,29 @@ import Home from "./pages/Home";
 import Infomation from "./pages/Infomation";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import { RouteProvider } from "./store/RouteContext";
-
+import { clearSelectedSeats } from "./redux/seatSlice";
+import { deleteReserveTicket } from "./redux/ticketReservationSlice";
 function App() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const location = useLocation();
-
+  const selectedSeats = useSelector((state) => state.seat.selectedSeats);
+  const dispatch = useDispatch();
   const isActive = (path) => location.pathname === path;
 
+  const handleDeleteTicketReservation = async () => {
+    for (let i = 0; i < selectedSeats.length; i++) {
+
+      let ticketReservationDTO = {
+        seat: selectedSeats[i].seatId,
+        trip: selectedSeats[i].reservation.trip.tripId,
+        departureStation: selectedSeats[i].reservation.departureStation.stationName,
+        arrivalStation: selectedSeats[i].reservation.arrivalStation.stationName
+      };
+      await dispatch(deleteReserveTicket(ticketReservationDTO))
+    }
+    dispatch(clearSelectedSeats());
+  }
   return (
     <Container maxW="container.xl" p={4}>
       <Box
@@ -59,6 +75,8 @@ function App() {
           <Heading
             as={Link}
             to="/"
+            onClick={handleDeleteTicketReservation}
+
             size="lg"
             fontWeight={900}
             _hover={{ opacity: 0.8 }}
@@ -72,6 +90,7 @@ function App() {
               <Button
                 as={Link}
                 to="/"
+                onClick={handleDeleteTicketReservation}
                 variant="ghost"
                 _hover={{ textDecoration: "underline" }}
                 _after={{

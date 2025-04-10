@@ -34,9 +34,7 @@ const Car = ({
   numSeats,
   carsConfig,
   stt,
-  tripId,
-  arrivalStation,
-  departureStation,
+
 }) => {
   const dispatch = useDispatch();
   const [selectedSeat, setSelectedSeat] = useState([]);
@@ -50,11 +48,9 @@ const Car = ({
     const isSelected = selectedSeat.some((s) => s.seatId === seat.seatId);
     const ticketReservationDTO = {
       seat: seat.seatId,
-      seatName: seat.seatNumber,
-      stt: stt,
-      trip: tripId,
-      departureStation,
-      arrivalStation,
+      trip: currentTrip.tripId,
+      departureStation: currentTrip.departureStation,
+      arrivalStation: currentTrip.arrivalStation,
     };
 
     if (isSelected) {
@@ -151,9 +147,7 @@ const Car = ({
 
 export default function Train({
   trainConfig,
-  tripId,
-  arrivalStation,
-  departureStation,
+
 }) {
   return (
     <Flex direction="column" align="center" py={6} px={4}>
@@ -164,10 +158,7 @@ export default function Train({
           type={carConfig.compartmentName}
           numSeats={carConfig.seatCount}
           carsConfig={carConfig.seats}
-          tripId={tripId}
           stt={carConfig.stt}
-          arrivalStation={arrivalStation}
-          departureStation={departureStation}
         />
       ))}
     </Flex>
