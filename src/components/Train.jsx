@@ -1,29 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Box, Text, Flex, Button, VStack, HStack } from "@chakra-ui/react";
 import {
   reserveTicket,
   deleteReserveTicket,
 } from "../redux/ticketReservationSlice";
-import { selectSeat } from "../redux/seatSlice";
+import { fetchSeat, selectSeat } from "../redux/seatSlice";
 import { ToastContainer, toast } from "react-toastify";
 import { store } from "../redux/store";
-const Seat = ({ id, available, isSelected, onClick }) => {
+const Seat = ({ id, available, seatName, isSelected, onClick }) => {
   return (
     <Button
-      onClick={available ? onClick : null}
+      onClick={
+        !isSelected ? onClick :
+          available ? onClick : null
+        // available ? onClick : null
+      }
       id={id}
       width="40px"
       height="40px"
       backgroundColor={
-        available ? (isSelected ? "green.400" : "tomato") : "gray.400"
+        !isSelected ? "tomato" :
+          available ? "green.400" : "gray.400"
+        // available ? (isSelected ? "green.400" : "tomato") : "gray.400"
       }
       border="1px solid black"
       margin="5px"
-      cursor={available ? "pointer" : "not-allowed"}
+      cursor={
+        !isSelected ? "pointer" :
+          available ? "pointer" : "not-allowed"
+        // available ? "pointer" : "not-allowed"
+      }
       _hover={available ? { opacity: 0.8 } : {}}
     >
-      {/* Optional: Seat number or icon */}
+      {seatName}
     </Button>
   );
 };
@@ -38,14 +48,22 @@ const Car = ({
 }) => {
   const dispatch = useDispatch();
   const [selectedSeat, setSelectedSeat] = useState([]);
+  const selectedSeats = useSelector((state) => state.seat.selectedSeats);
+
   const seats = [];
   const currentTrip = useSelector((state) => state.stationSearch.currentTrip);
   const seatsInCol = type === "Giường nằm khoang 6 điều hòa" ? 3 : 2;
-  const seatsClusterLength = type === "Ngồi điểu hóa" ? 32 : type === "sleep4" ? 28 : 42;
+  const seatsClusterLength = type === "Ngồi mềm điểu hòa" ? 16 : type === "Giường nằm khoang 4 điều hòa" ? 28 : 42;
+  // if (selectedSeats.length > 0) {
+  //   setSelectedSeat([...selectedSeats]);
+  // }
+  // useEffect(() => {
+  //   setSelectedSeat([...selectedSeats]);
+  // }, [selectedSeats]);
 
   const handleSelectSeat = async (seat) => {
 
-    const isSelected = selectedSeat.some((s) => s.seatId === seat.seatId);
+    const isSelected = selectedSeats.some((s) => s.seatId === seat.seatId);
     const ticketReservationDTO = {
       seat: seat.seatId,
       trip: currentTrip.tripId,
@@ -55,7 +73,6 @@ const Car = ({
 
     if (isSelected) {
       setSelectedSeat((prev) => prev.filter((s) => s.seatId !== seat.seatId));
-      console.log("currenttrip", currentTrip);
       await dispatch(deleteReserveTicket(ticketReservationDTO));
       dispatch(
         selectSeat({
@@ -68,8 +85,15 @@ const Car = ({
           expire: 0,
         })
       );
+      dispatch(
+        fetchSeat({
+          tripId: currentTrip.tripId,
+          from: currentTrip.departureStation,
+          to: currentTrip.arrivalStation,
+        })
+      )
     } else {
-      if (selectedSeat.length > 4) {
+      if (selectedSeats.length > 4) {
         toast.error("Chỉ được chọn tối đa 5 ghế", {
           position: "bottom-right",
           autoClose: 4000,
@@ -118,12 +142,14 @@ const Car = ({
 
   for (let i = 0; i < numSeats; i++) {
     const seat = carsConfig[i];
-    const isSelected = selectedSeat.some((s) => s.seatId === seat.seatId);
+    const isSelected = selectedSeats.some((s) => s.seatId === seat.seatId);
     seats.push(
       <Seat
+
         key={seat.seatId}
         available={seat.available}
         isSelected={!isSelected}
+        seatName={seat.seatNumber}
         onClick={() => handleSelectSeat(seat)}
       />
     );
@@ -162,7 +188,7 @@ const Car = ({
         <HStack spacing={6}>
           {renderSeatCluster()}
           <Box w="20px" />
-          {type === "Ngồi điểu hóa" && renderSeatCluster()}
+          {type === "Ngồi mềm điểu hóa" && renderSeatCluster()}
         </HStack>
       </Flex></>
   );

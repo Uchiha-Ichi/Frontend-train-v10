@@ -288,6 +288,12 @@ export default function Infomation() {
           {/* <Input placeholder="Nhập mã giảm giá" size="sm" width="200px" />
         <Button size="sm" colorScheme="blue">Áp dụng</Button> */}
         </Flex>
+        <Flex justify="space-between" align="center" mb={4}>
+          <Button size="sm" colorScheme="blue" as={Link} to="/booking" >
+            ← Quay lại chọn vé
+          </Button>
+          <Heading size="md">Danh sách vé đã chọn</Heading>
+        </Flex>
       </Box>
     </Box>
   );

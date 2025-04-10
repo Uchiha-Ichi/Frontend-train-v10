@@ -215,10 +215,10 @@ export default function BookingPage() {
                     )
                       .unwrap()
                       .then(() => {
-                        toast.success("Tải thông tin toa tàu thành công!", {
-                          position: "bottom-right",
-                          autoClose: 3000,
-                        });
+                        // toast.success("Tải thông tin toa tàu thành công!", {
+                        //   position: "bottom-right",
+                        //   autoClose: 3000,
+                        // });
                       })
                       .catch((err) => {
                         toast.error(`Lỗi khi tải toa tàu: ${err}`, {
