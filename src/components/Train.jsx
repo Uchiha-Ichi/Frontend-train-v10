@@ -7,7 +7,7 @@ import {
 } from "../redux/ticketReservationSlice";
 import { selectSeat } from "../redux/seatSlice";
 import { ToastContainer, toast } from "react-toastify";
-
+import { store } from "../redux/store";
 const Seat = ({ id, available, isSelected, onClick }) => {
   return (
     <Button
@@ -41,7 +41,7 @@ const Car = ({
   const seats = [];
   const currentTrip = useSelector((state) => state.stationSearch.currentTrip);
   const seatsInCol = type === "Giường nằm khoang 6 điều hòa" ? 3 : 2;
-  const seatsClusterLength = type === "seat" ? 32 : type === "sleep4" ? 28 : 42;
+  const seatsClusterLength = type === "Ngồi điểu hóa" ? 32 : type === "sleep4" ? 28 : 42;
 
   const handleSelectSeat = async (seat) => {
 
@@ -65,6 +65,7 @@ const Car = ({
           ticketPrice: seat.ticketPrice,
           reservation: null,
           departureTime: currentTrip.departureTime,
+          expire: 0,
         })
       );
     } else {
@@ -86,11 +87,33 @@ const Car = ({
           stt: stt,
           ticketPrice: seat.ticketPrice,
           reservation: reservation,
-          departureTime: currentTrip.departureTime
+          departureTime: currentTrip.departureTime,
+          expire: Date.now() + 1 * 1000 * 60,
         })
       );
       setSelectedSeat((prev) => [...prev, seat]);
     }
+    setTimeout(() => {
+      setSelectedSeat((prev) => prev.filter((s) => s.seatId !== seat.seatId));
+      const state = store.getState(); // Import store từ redux/store
+      const stillSelected = state.seat.selectedSeats.find(
+        (s) => s.seatId === seat.seatId
+      );
+      if (stillSelected) {
+        dispatch(
+          selectSeat({
+            seatId: seat.seatId,
+            seatName: seat.seatNumber,
+            stt: stt,
+            ticketPrice: seat.ticketPrice,
+            reservation: null,
+            departureTime: currentTrip.departureTime,
+            expire: 0,
+          })
+        );
+        dispatch(deleteReserveTicket(ticketReservationDTO));
+      }
+    }, 1 * 60 * 1000);
   };
 
   for (let i = 0; i < numSeats; i++) {
@@ -139,7 +162,7 @@ const Car = ({
         <HStack spacing={6}>
           {renderSeatCluster()}
           <Box w="20px" />
-          {type === "seat" && renderSeatCluster()}
+          {type === "Ngồi điểu hóa" && renderSeatCluster()}
         </HStack>
       </Flex></>
   );

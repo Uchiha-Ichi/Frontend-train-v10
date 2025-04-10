@@ -34,7 +34,7 @@ const seatSlice = createSlice({
   },
   reducers: {
     selectSeat: (state, action) => {
-      const { seatId, seatName, stt, ticketPrice, reservation, departureTime } = action.payload; // seatId và ticketPrice từ action
+      const { seatId, seatName, stt, ticketPrice, reservation, departureTime, expire } = action.payload; // seatId và ticketPrice từ action
 
       // Kiểm tra xem ghế đã được chọn chưa
       const seatIndex = state.selectedSeats.findIndex(
@@ -50,7 +50,7 @@ const seatSlice = createSlice({
         state.totalPrice -= ticketPrice;
       } else {
         // Nếu ghế chưa được chọn, thêm ghế vào danh sách và cộng thêm giá trị của ghế
-        state.selectedSeats.push({ seatId, seatName, stt, ticketPrice, reservation, departureTime });
+        state.selectedSeats.push({ seatId, seatName, stt, ticketPrice, reservation, departureTime, expire });
         state.totalPrice += ticketPrice;
       }
     },

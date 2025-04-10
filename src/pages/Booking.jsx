@@ -19,7 +19,7 @@ import { fetchSeat, selectSeat } from "../redux/seatSlice";
 import { setCurrentTrip } from "../redux/stationSearchSlice";
 import Train from "../components/Train";
 import cart from "../assets/cart.svg";
-
+import SeatCountdown from "../components/SeatCountdown/SeatCountdown";
 export default function BookingPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ export default function BookingPage() {
   const selectedSeats = useSelector((state) => state.seat.selectedSeats);
   const activeTrip = trips.find((trip) => trip.tripId === activeTripId);
   const totalPrice = useSelector((state) => state.seat.totalPrice);
-  console.log(date);
+  // console.log(date);
   const handleTransfer = () => {
     if (selectedSeats.length === 0) {
       toast.error("Vui lòng chọn ghế trước khi thanh toán !", {
@@ -83,7 +83,7 @@ export default function BookingPage() {
         });
     }
   }, [dispatch, from, to, date]);
-  console.log("selectedSeats", selectedSeats);
+  // console.log("selectedSeats", selectedSeats);
   return (
     <Box py={12} px={4}>
       <ToastContainer />
@@ -175,12 +175,14 @@ export default function BookingPage() {
                           <Text>
                             Toa {seat.stt} - Ghế {seat.seatName}
                           </Text>
+                          <SeatCountdown expire={seat.expire} />
                         </Box>
                       ))}
                       <Text fontWeight="bold">
                         {selectedSeats.length} ghế đã chọn -{" "}
                         {formatTotalPrice(totalPrice)}
                       </Text>
+
                     </>
                   )}
                 </Box>

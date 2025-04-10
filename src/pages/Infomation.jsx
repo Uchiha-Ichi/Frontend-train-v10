@@ -6,6 +6,7 @@ import { featchTicketType } from "../redux/ticketType";
 import { clearSelectedSeats, selectSeat } from "../redux/seatSlice";
 import { deleteReserveTicket } from "../redux/ticketReservationSlice";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Flex,
@@ -19,18 +20,21 @@ import {
   HStack, Stack, VStack,
   createListCollection
 } from "@chakra-ui/react";
-
 import { groupBy } from "es-toolkit"
+import SeatCountdown from "../components/SeatCountdown/SeatCountdown";
 // import { DeleteIcon } from "@chakra-ui/icons";
 // import { bookTickets, testTicket } from "../../redux/ticketSlice";
 export default function Infomation() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const selectedSeats = useSelector((state) => state.seat.selectedSeats);
 
   const { types, loading, error } = useSelector((state) => state.ticketType);
   if (loading) return <p>Đang tải...</p>;
   if (error) return <p>Lỗi: {error}</p>;
-
+  if (selectedSeats.length === 0) {
+    navigate("/");
+  }
   const [customerInfo, setCustomerInfo] = useState({
     fullName: "",
     phone: "",
@@ -46,7 +50,7 @@ export default function Infomation() {
   //   return
   // }
   useEffect(() => {
-    console.log("here");
+    // console.log("here");
     if (selectedSeats?.length > 0) {
       setTickets(
         selectedSeats.map((selectedSeat) => ({
@@ -57,6 +61,7 @@ export default function Infomation() {
           totalPrice: selectedSeat.ticketPrice,
           ticketReservation: selectedSeat.reservation,
           ticketType: types[1],
+          expire: 0,
         }))
       );
     }
@@ -73,7 +78,7 @@ export default function Infomation() {
 
       const totalAmount = getTotalAmount() || 0;;
       let requestData = { customer: customerInfo.fullName, amount: totalAmount / 1000 };
-      console.log("reqData", requestData);
+      // console.log("reqData", requestData);
       const response = await axios.post("http://localhost:5000/payment", requestData,
         { headers: { "Content-Type": "application/json" } });
 
@@ -119,6 +124,7 @@ export default function Infomation() {
       ticketPrice: selectedSeats[index].ticketPrice,
       reservation: null,
       departureTime: null,
+      expire: 0,
     }));
     setTickets((prevTickets) =>
       prevTickets.filter((t) => t.ticketReservation.seat.seatId !== selectedSeats[index].seatId)
@@ -154,7 +160,7 @@ export default function Infomation() {
       return updatedTickets;
     });
   };
-  console.log(types);
+  // console.log(types);
 
 
   const collection = createListCollection({
@@ -232,6 +238,7 @@ export default function Infomation() {
                 <Text fontSize="sm">{selectedSeat.reservation.trip.train.trainName}, {selectedSeat.reservation.trip.train.route.routeName}</Text>
                 <Text fontSize="sm">{selectedSeat.reservation.trip.tripDate}</Text>
                 <Text fontSize="sm">Toa {selectedSeat.stt} - Ghế {selectedSeat.seatName}</Text>
+                <SeatCountdown expire={selectedSeat.expire} />
               </Table.Cell>
               <Table.Cell>{selectedSeat.ticketPrice.toLocaleString()} VND</Table.Cell>
               <Table.Cell>Giảm {(tickets[index]?.discount * 100).toString()} %</Table.Cell>
