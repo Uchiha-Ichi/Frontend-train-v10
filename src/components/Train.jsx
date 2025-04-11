@@ -136,6 +136,13 @@ const Car = ({
           })
         );
         dispatch(deleteReserveTicket(ticketReservationDTO));
+        dispatch(
+          fetchSeat({
+            tripId: currentTrip.tripId,
+            from: currentTrip.departureStation,
+            to: currentTrip.arrivalStation,
+          })
+        )
       }
     }, 1 * 60 * 1000);
   };
