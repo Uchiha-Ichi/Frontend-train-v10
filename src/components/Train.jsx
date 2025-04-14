@@ -112,7 +112,7 @@ const Car = ({
           ticketPrice: seat.ticketPrice,
           reservation: reservation,
           departureTime: currentTrip.departureTime,
-          expire: Date.now() + 1 * 1000 * 60,
+          expire: Date.now() + 10 * 1000 * 60,
         })
       );
       setSelectedSeat((prev) => [...prev, seat]);
@@ -144,7 +144,7 @@ const Car = ({
           })
         )
       }
-    }, 1 * 60 * 1000);
+    }, 10 * 60 * 1000);
   };
 
   for (let i = 0; i < numSeats; i++) {

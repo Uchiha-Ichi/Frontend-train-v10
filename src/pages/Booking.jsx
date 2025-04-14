@@ -33,6 +33,7 @@ export default function BookingPage() {
   const error = useSelector((state) => state.stationSearch?.error);
   const carriages = useSelector((state) => state.seat.carriages);
   const selectedSeats = useSelector((state) => state.seat.selectedSeats);
+  console.log("selectedSeats", selectedSeats);
   const activeTrip = trips.find((trip) => trip.tripId === activeTripId);
   const totalPrice = useSelector((state) => state.seat.totalPrice);
   // console.log(date);
@@ -165,11 +166,11 @@ export default function BookingPage() {
                           bg="blue.200"
                         >
                           <Text fontWeight="bold">
-                            {seat.reservation.trip.train.trainName}
+                            {seat.reservation.trainName}
                           </Text>
                           <Text>
-                            {seat.reservation.departureStation.stationName} -{" "}
-                            {seat.reservation.arrivalStation.stationName}
+                            {seat.reservation.departureStation} -{" "}
+                            {seat.reservation.arrivalStation}
                           </Text>
                           <Text>{seat.departureTime}</Text>
                           <Text>

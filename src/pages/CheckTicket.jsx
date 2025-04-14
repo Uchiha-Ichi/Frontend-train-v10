@@ -86,13 +86,13 @@ const CheckTicket = () => {
         >
           Kiểm tra bằng mã vé
         </Button>
-        <Button
+        {/* <Button
           variant={checkType === "userInfo" ? "solid" : "outline"}
           colorScheme={checkType === "userInfo" ? "blue" : "gray"}
           onClick={() => setCheckType("userInfo")}
         >
           Kiểm tra bằng thông tin khách hàng
-        </Button>
+        </Button> */}
       </Flex>
 
       <Stack spacing={4} mb={6}>

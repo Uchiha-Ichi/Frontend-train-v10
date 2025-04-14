@@ -54,16 +54,23 @@ export default function Infomation() {
     if (selectedSeats?.length > 0) {
       setTickets(
         selectedSeats.map((selectedSeat) => ({
+          ticketId: selectedSeat.reservation.ticketId,
+          trip: selectedSeat.reservation.tripId,
+          departureStation: selectedSeat.reservation.departureStation,
+          arrivalStation: selectedSeat.reservation.arrivalStation,
           fullName: "",
           cccd: "",
           price: selectedSeat.ticketPrice,
           discount: 0,
           totalPrice: selectedSeat.ticketPrice,
-          ticketReservation: selectedSeat.reservation,
+          seat: selectedSeat.seatId,
           ticketType: types[1],
           expire: 0,
         }))
       );
+    }
+    if (selectedSeats.length === 0) {
+      navigate("/");
     }
   }, []);
 
@@ -73,11 +80,12 @@ export default function Infomation() {
     try {
       const payload = {
         customerDTO: customerInfo,
-        ticketInformationDTO: tickets,
+        ticketRequestDTO: tickets,
       };
+      console.log("payload", payload);
 
       const totalAmount = getTotalAmount() || 0;;
-      let requestData = { customer: customerInfo.fullName, amount: totalAmount / 1000 };
+      let requestData = { customer: customerInfo.fullName, amount: totalAmount };
       // console.log("reqData", requestData);
       const response = await axios.post("http://localhost:5000/payment", requestData,
         { headers: { "Content-Type": "application/json" } });
@@ -235,8 +243,8 @@ export default function Infomation() {
                 </VStack>
               </Table.Cell>
               <Table.Cell>
-                <Text fontSize="sm">{selectedSeat.reservation.trip.train.trainName}, {selectedSeat.reservation.trip.train.route.routeName}</Text>
-                <Text fontSize="sm">{selectedSeat.reservation.trip.tripDate}</Text>
+                <Text fontSize="sm">{selectedSeat.reservation.trainName}, {selectedSeat.reservation.routeName}</Text>
+                <Text fontSize="sm">{selectedSeat.reservation.tripDate}</Text>
                 <Text fontSize="sm">Toa {selectedSeat.stt} - Ghế {selectedSeat.seatName}</Text>
                 <SeatCountdown expire={selectedSeat.expire} />
               </Table.Cell>

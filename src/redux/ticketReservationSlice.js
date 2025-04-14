@@ -9,7 +9,7 @@ export const fetchTicketReservation = createAsyncThunk(
         try {
 
             const response = await axios.get(
-                `${API_BASE_URL}ticketReservation/getReservation`,
+                `${API_BASE_URL}tickets/getReservation`,
                 {
                     params: { id },
                 }
@@ -28,7 +28,7 @@ export const reserveTicket = createAsyncThunk(
     async (ticketReservationDTO, { rejectWithValue }) => {
         try {
             console.log("ticketReservationDTO", `${API_BASE_URL}ticketReservation/reserve`);
-            const response = await axios.post(`${API_BASE_URL}ticketReservation/reserve`, ticketReservationDTO);
+            const response = await axios.post(`${API_BASE_URL}tickets/reserve`, ticketReservationDTO);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || "L��i khi đặt vé");
@@ -39,8 +39,8 @@ export const deleteReserveTicket = createAsyncThunk(
     "ticketReservation/deleteReserveTicket",
     async (ticketReservationDTO, { rejectWithValue }) => {
         try {
-            console.log("ticketReservationDTO", ticketReservationDTO);
-            const response = await axios.post(`${API_BASE_URL}ticketReservation/deleteReserve`, ticketReservationDTO);
+            // console.log("ticketReservationDTO", ticketReservationDTO);
+            const response = await axios.post(`${API_BASE_URL}tickets/deleteReserve`, ticketReservationDTO);
             console.log("deleteReserveTicket", response.data)
             return response.data;
         } catch (error) {
