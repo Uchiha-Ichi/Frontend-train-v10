@@ -11,13 +11,12 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { searchTicketById, searchTicketsByCustomer } from "../redux/checkTicketSlice";
+import { searchTicketById, searchTicketsByReservationCode } from "../redux/checkTicketSlice";
 
 const CheckTicket = () => {
   const [checkType, setCheckType] = useState("ticketId");
   const [ticketId, setTicketId] = useState("");
-  const [cccd, setCccd] = useState("");
-  const [phone, setPhone] = useState("");
+  const [reservationCode, setReservationCode] = useState("");
   const [ticketList, setTicketList] = useState([]);
   const [error, setError] = useState("");
 
@@ -26,8 +25,7 @@ const CheckTicket = () => {
 
   useEffect(() => {
     setTicketId("");
-    setCccd("");
-    setPhone("");
+    setReservationCode("");
     setTicketList([]);
     setError("");
   }, [checkType]);
@@ -56,11 +54,11 @@ const CheckTicket = () => {
       }
       dispatch(searchTicketById(ticketId));
     } else {
-      if (!cccd || !phone) {
-        setError("Vui lòng nhập cả CCCD và số điện thoại!");
+      if (!reservationCode) {
+        setError("Vui lòng nhập mã đặt chỗ!");
         return;
       }
-      dispatch(searchTicketsByCustomer({ cccd, phone }));
+      dispatch(searchTicketsByReservationCode(reservationCode));
     }
   };
 
@@ -86,13 +84,13 @@ const CheckTicket = () => {
         >
           Kiểm tra bằng mã vé
         </Button>
-        {/* <Button
-          variant={checkType === "userInfo" ? "solid" : "outline"}
-          colorScheme={checkType === "userInfo" ? "blue" : "gray"}
-          onClick={() => setCheckType("userInfo")}
+        <Button
+          variant={checkType === "reservationCode" ? "solid" : "outline"}
+          colorScheme={checkType === "reservationCode" ? "blue" : "gray"}
+          onClick={() => setCheckType("reservationCode")}
         >
-          Kiểm tra bằng thông tin khách hàng
-        </Button> */}
+          Kiểm tra bằng mã đặt chỗ
+        </Button>
       </Flex>
 
       <Stack spacing={4} mb={6}>
@@ -103,18 +101,11 @@ const CheckTicket = () => {
             onChange={(e) => setTicketId(e.target.value)}
           />
         ) : (
-          <>
-            <Input
-              placeholder="Nhập CCCD"
-              value={cccd}
-              onChange={(e) => setCccd(e.target.value)}
-            />
-            <Input
-              placeholder="Nhập Số điện thoại"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </>
+          <Input
+            placeholder="Nhập mã đặt chỗ"
+            value={reservationCode}
+            onChange={(e) => setReservationCode(e.target.value)} 
+          />
         )}
         <Button colorScheme="blue" onClick={handleCheckTicket} isDisabled={loading}>
           {loading ? <Spinner size="sm" mr={2} /> : null}
@@ -130,21 +121,25 @@ const CheckTicket = () => {
 
       {ticketList.length > 0 && (
         <Box mt={8} bg="gray.50" p={5} borderRadius="md">
-          {checkType === "userInfo" && (
+          {checkType === "reservationCode" && (
             <Heading size="lg" mb={4}>Danh sách vé</Heading>
           )}
           <SimpleGrid columns={{ base: 1, md: checkType === "ticketId" ? 1 : 2 }} spacing={6}>
             {ticketList.map((ticket, index) => {
               const res = ticket.reservation;
-              const trip = res?.trip;
-              const seat = res?.seat;
+              const trip = ticket.trip;
+              const seat = ticket.seat;
               const carriage = seat?.carriageList;
               const compartment = carriage?.compartment;
+
+              // Lấy thông tin ga đi và ga đến từ đối tượng ticket
+              const departureStation = ticket.departureStation;
+              const arrivalStation = ticket.arrivalStation;
 
               return (
                 <Box key={index} w="100%" p={4} borderWidth="1px" borderRadius="md" bg="white" shadow="sm">
                   <Stack spacing={2} textAlign="left">
-                    {checkType === "userInfo" && (
+                    {checkType === "reservationCode" && (
                       <Text fontSize="md" color="red.500" fontWeight="bold">
                         Vé {index + 1}
                       </Text>
@@ -155,7 +150,7 @@ const CheckTicket = () => {
                     <Text>
                       <Text as="span" color="blue.700" fontWeight="semibold">Giờ khởi hành:</Text>{" "}
                       {trip?.tripDate
-                        ? `${new Date(trip.tripDate).toLocaleDateString("vi-VN")} - ${findDepartureTime(trip, res?.departureStation) || "Chưa có giờ"}`
+                        ? `${new Date(trip.tripDate).toLocaleDateString("vi-VN")} - ${findDepartureTime(trip, departureStation) || "Chưa có giờ"}`
                         : "Không có dữ liệu"}
                     </Text>
                     <Text>
@@ -163,8 +158,19 @@ const CheckTicket = () => {
                       {seat?.seatNumber || "?"} - Tầng {seat?.floor || "?"} - Toa {carriage?.carriageListId || "?"} - Khoang {compartment?.compartmentName || "?"}
                     </Text>
                     <Text><Text as="span" color="blue.700" fontWeight="semibold">Giá:</Text> {ticket.totalPrice ? `${ticket.totalPrice} VND` : "Chưa có giá"}</Text>
-                    <Text><Text as="span" color="blue.700" fontWeight="semibold">Ga đi:</Text> {res?.departureStation?.stationName || "Không có dữ liệu"}</Text>
-                    <Text><Text as="span" color="blue.700" fontWeight="semibold">Ga đến:</Text> {res?.arrivalStation?.stationName || "Không có dữ liệu"}</Text>
+                    
+                    <Text>
+                      <Text as="span" color="blue.700" fontWeight="semibold">Điểm khởi hành: </Text>
+                      ga {departureStation?.stationName || "Không có dữ liệu"}
+                    </Text>
+                    <Text>
+                      <Text as="span" color="blue.700" fontWeight="semibold">Điểm đến: </Text>
+                      ga {arrivalStation?.stationName || "Không có dữ liệu"}
+                    </Text>
+                    <Text>
+                      <Text as="span" color="blue.700" fontWeight="semibold">Tuyến tàu:</Text> {trip?.train?.route?.routeName || "Không có dữ liệu"}
+                    </Text>
+
                     <Text><Text as="span" color="blue.700" fontWeight="semibold">Trạng thái vé:</Text> {ticket.ticketStatus || "Không có dữ liệu"}</Text>
                   </Stack>
                 </Box>
