@@ -7,7 +7,7 @@ export const searchTrains = createAsyncThunk(
   async ({ from, to, date }, { rejectWithValue }) => {
     try {
       console.log(from, to, date);
-      const response = await axios.post("http://localhost:8080/trips/searchs", {
+      const response = await axios.post("http://localhost:8080/api/trips/searchs", {
         departureStation: from,
         arrivalStation: to,
         tripDate: date,
@@ -58,7 +58,11 @@ const stationSearchSlice = createSlice({
       })
       .addCase(searchTrains.fulfilled, (state, action) => {
         state.loading = false;
-        state.trips = action.payload;
+        state.trips = action.payload.sort((a, b) => {
+          const numA = parseInt(a.trainName.match(/\d+/)[0], 10);
+          const numB = parseInt(b.trainName.match(/\d+/)[0], 10);
+          return numA - numB;
+        })
       })
       .addCase(searchTrains.rejected, (state, action) => {
         state.loading = false;
