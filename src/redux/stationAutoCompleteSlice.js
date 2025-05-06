@@ -8,7 +8,7 @@ export const fetchStationSuggestions = createAsyncThunk(
   async (query, { rejectWithValue }) => {
     try {
       if (!query) return [];
-      const response = await axios.get("http://localhost:8080/station/suggest", {
+      const response = await axios.get("http://localhost:8080/api/station/suggest", {
         params: { keyword: query },
       });
       return response.data;
@@ -22,7 +22,7 @@ export const fetchAllStations = createAsyncThunk(
   "stationAutoComplete/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("http://localhost:8080/station/all");
+      const response = await axios.get("http://localhost:8080/api/station/all");
       return response.data;
     } catch (error) {
       return rejectWithValue("Lỗi khi lấy danh sách ga");
@@ -34,7 +34,7 @@ const stationAutoCompleteSlice = createSlice({
   name: "stationAutoComplete",
   initialState: {
     suggestions: [],
-    allStations: [],  
+    allStations: [],
     loading: false,
     error: null,
     activeField: null, // Thêm activeField vào initialState
@@ -60,7 +60,7 @@ const stationAutoCompleteSlice = createSlice({
         state.loading = false;
         state.suggestions = [];
       })
-        // Xử lý fetchAllStations
+      // Xử lý fetchAllStations
       .addCase(fetchAllStations.pending, (state) => {
         state.loading = true;
       })
