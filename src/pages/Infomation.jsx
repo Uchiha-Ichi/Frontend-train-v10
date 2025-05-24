@@ -108,7 +108,7 @@ export default function Infomation() {
 
       let ticketReservationDTO = {
         seat: selectedSeats[i].seatId,
-        trip: selectedSeats[i].reservation.trip.tripId,
+        trip: selectedSeats[i].reservation.tripId,
         departureStation: selectedSeats[i].reservation.departureStation.stationName,
         arrivalStation: selectedSeats[i].reservation.arrivalStation.stationName
       };
@@ -118,13 +118,23 @@ export default function Infomation() {
 
   }
   const handleDeleteTicketReservation = async (index) => {
+    const selectedSeat = selectedSeats[index];
+    if (!selectedSeat) return;
     let ticketReservationDTO = {
       seat: selectedSeats[index].seatId,
-      trip: selectedSeats[index].reservation.trip.tripId,
+      trip: selectedSeats[index].reservation.tripId,
       departureStation: selectedSeats[index].reservation.departureStation.stationName,
       arrivalStation: selectedSeats[index].reservation.arrivalStation.stationName
     };
-    await dispatch(deleteReserveTicket(ticketReservationDTO))
+    try {
+      const response = await dispatch(deleteReserveTicket(ticketReservationDTO));
+      if (response.error) {
+        console.error("Lỗi khi xóa vé:", response.error);
+      }
+    } catch (error) {
+      console.error("Lỗi khi gọi API xóa vé:", error);
+    }
+
     await dispatch(selectSeat({
       seatId: selectedSeats[index].seatId,
       seatName: selectedSeats[index].seatNumber,
