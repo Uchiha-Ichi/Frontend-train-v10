@@ -86,7 +86,8 @@ export default function Infomation() {
 
       const totalAmount = getTotalAmount() || 0;;
       let requestData = { customer: customerInfo.fullName, amount: totalAmount };
-      // console.log("reqData", requestData);
+      // console.log("reqData", requestData); 
+      //  const response = await fetch("${API_BASE_URL}station/all");
       const response = await axios.post("http://localhost:5000/payment", requestData,
         { headers: { "Content-Type": "application/json" } });
 

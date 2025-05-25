@@ -1,13 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-const API_BASE_URL = import.meta.env.API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const fetchSeat = createAsyncThunk(
   "fetchSeat/fetch",
   async ({ tripId, from, to }, { rejectWithValue }) => {
     try {
-      // console.log("tripId", tripId);
+       console.log("tripId", tripId);
       const response = await axios.post(
-        "http://localhost:8080/api/carriages/seats",
+        `${API_BASE_URL}carriages/seats`,
         {
           tripId: tripId,
           departureStation: from,
@@ -34,7 +34,8 @@ const seatSlice = createSlice({
   },
   reducers: {
     selectSeat: (state, action) => {
-      const { seatId, seatName, stt, ticketPrice, reservation, departureTime, expire } = action.payload; // seatId và ticketPrice từ action
+      const { seatId, seatName, stt, ticketPrice, reservation, departureTime, 
+        expire } = action.payload; // seatId và ticketPrice từ action
 
       // Kiểm tra xem ghế đã được chọn chưa
       const seatIndex = state.selectedSeats.findIndex(

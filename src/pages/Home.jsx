@@ -9,6 +9,12 @@ import DatePicker from "../components/DatePicker/DatePicker";
 import Autocomplete from "../utils/Autocomplete";
 import { featchTicketType } from "../redux/ticketType";
 
+import { useNavigate } from "react-router-dom";
+
+
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const SearchForm = ({ state, handleFromChange, handleToChange, stations, onSearch }) => {
   const [fromError, setFromError] = useState("");
   const [toError, setToError] = useState("");
@@ -100,6 +106,11 @@ const SearchForm = ({ state, handleFromChange, handleToChange, stations, onSearc
 // Home component
 export default function Home() {
   const dispatch = useDispatch();
+  // Trong Home component
+  const navigate = useNavigate();
+  // Sử dụng useContext để lấy state và các hàm set
+  // từ RouteContext    
+
 
   const { state, handleSetFrom, handleSetTo, handleSetDate } =
     useContext(RouteContext);
@@ -110,14 +121,15 @@ export default function Home() {
   const handleToChange = (e) => handleSetTo(e.target.value);
   const handleDateChange = (date) => handleSetDate(date);
 
-  const handleSearch = () => {
-    window.location.href = "/booking"; // Hoặc dùng navigate nếu dùng react-router
-  };
+    const handleSearch = () => {
+      // window.location.href = "/booking"; // Hoặc dùng navigate nếu dùng react-router
+      navigate("/booking");
+    };
 
   useEffect(() => {
     const fetchStations = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/api/station/all");
+      try { 
+        const response = await fetch(`${API_BASE_URL}station/all`);
         if (!response.ok) {
           console.error("Failed to fetch stations");
           return;

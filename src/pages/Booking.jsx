@@ -55,6 +55,8 @@ export default function BookingPage() {
   };
 
   useEffect(() => {
+    console.log("from: ", state.from, ", to: ", state.to, ", date", state.date);
+    console.log("from: ", state.departureStation, ", to: ", state.arrivalStation, ", date", state.date);
     // if (from === to) {
     //   toast.error("Ga đi và ga đến không được giống nhau!", {
     //     position: "bottom-right",
