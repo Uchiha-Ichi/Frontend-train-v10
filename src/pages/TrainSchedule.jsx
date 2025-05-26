@@ -15,8 +15,8 @@ const TrainScheduleManager = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [form] = Form.useForm();
-  const [selectedTrainName, setSelectedTrainName] = useState(""); // Lọc theo tên tàu
-  const [selectedRouteName, setSelectedRouteName] = useState(""); // Lọc theo tuyến
+  const [selectedTrainName, setSelectedTrainName] = useState("");
+  const [selectedRouteName, setSelectedRouteName] = useState("");
 
   // Lấy tất cả lịch tàu khi component load
   useEffect(() => {
