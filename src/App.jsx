@@ -28,6 +28,7 @@ import Booking from "./pages/Booking";
 import CheckTicket from "./pages/CheckTicket";
 import Home from "./pages/Home";
 import Infomation from "./pages/Infomation";
+import TrainSchedule from "./pages/TrainSchedule";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import { RouteProvider } from "./store/RouteContext";
 import { clearSelectedSeats } from "./redux/seatSlice";
@@ -198,6 +199,7 @@ function App() {
             <Route path="/booking" element={<Booking />} />
             <Route path="/info" element={<Infomation />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/train-schedule" element={<TrainSchedule/>}/>
             {/* Redirect unknown routes to Home */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
