@@ -40,3 +40,10 @@
 .read-the-docs {
   color: #888;
 }
+.custom-bordered-table .ant-table-container {
+  border: 0.5px solid #000 !important;
+}
+
+.custom-bordered-table .ant-table-cell {
+  border: 1px solid #000 !important;
+}

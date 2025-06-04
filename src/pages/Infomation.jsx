@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import { featchTicketType } from "../redux/ticketType";
 import { clearSelectedSeats, selectSeat } from "../redux/seatSlice";
 import { deleteReserveTicket } from "../redux/ticketReservationSlice";
 import { Link } from "react-router-dom";
@@ -28,6 +27,7 @@ export default function Infomation() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const selectedSeats = useSelector((state) => state.seat.selectedSeats);
+  const totalPrice = useSelector((state) => state.seat.totalPrice);
 
   const { types, loading, error } = useSelector((state) => state.ticketType);
   if (loading) return <p>Đang tải...</p>;
@@ -86,7 +86,8 @@ export default function Infomation() {
 
       const totalAmount = getTotalAmount() || 0;;
       let requestData = { customer: customerInfo.fullName, amount: totalAmount };
-      // console.log("reqData", requestData);
+      // console.log("reqData", requestData); 
+      //  const response = await fetch("${API_BASE_URL}station/all");
       const response = await axios.post("http://localhost:5000/payment", requestData,
         { headers: { "Content-Type": "application/json" } });
 
@@ -109,8 +110,8 @@ export default function Infomation() {
       let ticketReservationDTO = {
         seat: selectedSeats[i].seatId,
         trip: selectedSeats[i].reservation.tripId,
-        departureStation: selectedSeats[i].reservation.departureStation.stationName,
-        arrivalStation: selectedSeats[i].reservation.arrivalStation.stationName
+        departureStation: selectedSeats[i].reservation.departureStation,
+        arrivalStation: selectedSeats[i].reservation.arrivalStation
       };
       await dispatch(deleteReserveTicket(ticketReservationDTO))
     }
@@ -119,14 +120,16 @@ export default function Infomation() {
   }
   const handleDeleteTicketReservation = async (index) => {
     const selectedSeat = selectedSeats[index];
+
     if (!selectedSeat) return;
     let ticketReservationDTO = {
       seat: selectedSeats[index].seatId,
       trip: selectedSeats[index].reservation.tripId,
-      departureStation: selectedSeats[index].reservation.departureStation.stationName,
-      arrivalStation: selectedSeats[index].reservation.arrivalStation.stationName
+      departureStation: selectedSeats[index].reservation.departureStation,
+      arrivalStation: selectedSeats[index].reservation.arrivalStation
     };
     try {
+      console.log("selectedSeat", ticketReservationDTO);
       const response = await dispatch(deleteReserveTicket(ticketReservationDTO));
       if (response.error) {
         console.error("Lỗi khi xóa vé:", response.error);
@@ -134,19 +137,19 @@ export default function Infomation() {
     } catch (error) {
       console.error("Lỗi khi gọi API xóa vé:", error);
     }
+    setTickets((prevTickets) =>
+      prevTickets.filter((t) => t.seat !== selectedSeats[index].seatId)
+    );
 
     await dispatch(selectSeat({
       seatId: selectedSeats[index].seatId,
-      seatName: selectedSeats[index].seatNumber,
+      seatName: selectedSeats[index].seatName,
       stt: null,
       ticketPrice: selectedSeats[index].ticketPrice,
       reservation: null,
       departureTime: null,
       expire: 0,
     }));
-    setTickets((prevTickets) =>
-      prevTickets.filter((t) => t.ticketReservation.seat.seatId !== selectedSeats[index].seatId)
-    );
   }
 
 
@@ -188,9 +191,9 @@ export default function Infomation() {
       discountRate: type.discountRate
     })),
   })
-  const getTotalAmount = () => {
+  const getTotalAmount = useMemo(() => {
     return tickets.reduce((sum, ticket) => sum + (ticket?.totalPrice || 0), 0);
-  };
+  }, [tickets]);
   return (
     <Box p={6} maxW="1200px" mx="auto">
       <Heading size="md" mb={4}>Danh sách vé đã chọn</Heading>
@@ -278,7 +281,7 @@ export default function Infomation() {
 
       <Flex justify="flex-end" mb={6}>
         <Text fontWeight="bold">Tổng tiền:&nbsp;</Text>
-        <Text fontWeight="bold" color="blue.600">{getTotalAmount().toLocaleString() || "0"} VND</Text>
+        <Text fontWeight="bold" color="blue.600">{getTotalAmount.toLocaleString() || "0"} VND</Text>
       </Flex>
 
       <Box borderTop="1px" borderColor="gray.300" pt={4}>

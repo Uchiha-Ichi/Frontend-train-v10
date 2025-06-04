@@ -55,6 +55,8 @@ export default function BookingPage() {
   };
 
   useEffect(() => {
+    console.log("from: ", state.from, ", to: ", state.to, ", date", state.date);
+    console.log("from: ", state.departureStation, ", to: ", state.arrivalStation, ", date", state.date);
     // if (from === to) {
     //   toast.error("Ga đi và ga đến không được giống nhau!", {
     //     position: "bottom-right",
@@ -188,8 +190,89 @@ export default function BookingPage() {
                   )}
                 </Box>
               </Button>
-
               {trips.map((trip) => (
+                <Card.Root
+                  key={trip.tripId}
+                  minW={{ base: "250px", md: "auto" }}
+                  borderWidth="2px"
+                  borderColor={
+                    trip.tripId === activeTripId ? "blue.500" : "gray.200"
+                  }
+                  bg={trip.tripId === activeTripId ? "blue.50" : "white"}
+                  cursor="pointer"
+                  onClick={() => {
+                    setActiveTripId(trip.tripId);
+                    dispatch(setCurrentTrip(trip));
+                    console.log(
+                      trip.tripId,
+                      trip.departureStation,
+                      trip.arrivalStation
+                    );
+                    dispatch(
+                      fetchSeat({
+                        tripId: trip.tripId,
+                        from: trip.departureStation,
+                        to: trip.arrivalStation,
+                      })
+                    )
+                      .unwrap()
+                      .then(() => {
+                        // toast.success("Tải thông tin toa tàu thành công!", {
+                        //   position: "bottom-right",
+                        //   autoClose: 3000,
+                        // });
+                      })
+                      .catch((err) => {
+                        toast.error(`Lỗi khi tải toa tàu: ${err}`, {
+                          position: "bottom-right",
+                          autoClose: 4000,
+                        });
+                      });
+                  }}
+                  transition="all 0.2s"
+                  _hover={{ shadow: "md" }}
+                >
+                  <Card.Header>
+                    <Box bg="blue.500" color="white" px={3} py={1} borderRadius="md">
+                      <Heading size="md">
+                        Tàu: {trip.trainName || "Chưa rõ"}
+                      </Heading>
+                    </Box>
+                  </Card.Header>
+
+                  <Card.Body>
+                    <VStack align="start" spacing={2}>
+                      <Text>
+                        Thời gian đi:{" "}
+                        {new Date(trip.departureTime).toLocaleString("vi-VN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })}
+                      </Text>
+
+                      <Text>
+                        Thời gian đến:{" "}
+                        {new Date(trip.arrivalTime).toLocaleString("vi-VN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })}
+                      </Text>
+
+                      <Box bg="green.500" color="white" px={3} py={1} borderRadius="md">
+                        <Text>Số ghế còn lại: {trip.availableSeats}</Text>
+                      </Box>
+                    </VStack>
+                  </Card.Body>
+                </Card.Root>
+              ))}
+
+              {/* {trips.map((trip) => (
                 <Card.Root
                   key={trip.tripId}
                   minW={{ base: "250px", md: "auto" }}
@@ -238,13 +321,26 @@ export default function BookingPage() {
                   </Card.Header>
                   <Card.Body>
                     <VStack align="start" spacing={2}>
-                      <Text>Thời gian đi: {trip.departureTime}</Text>
-                      <Text>Thời gian đến: {trip.arrivalTime}</Text>
-                      <Text>103</Text>
+                      <Text>Thời gian đi: {new Date(trip.departureTime).toLocaleString("vi-VN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}</Text>
+
+                      <Text>Thời gian đến: {new Date(trip.arrivalTime).toLocaleString("vi-VN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}</Text>
+                      <Text>Số ghế còn lại: {trip.availableSeats}</Text>
                     </VStack>
                   </Card.Body>
                 </Card.Root>
-              ))}
+              ))} */}
             </Box>
 
             {activeTrip && (

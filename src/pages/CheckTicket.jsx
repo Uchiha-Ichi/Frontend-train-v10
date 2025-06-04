@@ -155,7 +155,7 @@ const CheckTicket = () => {
                     </Text>
                     <Text>
                       <Text as="span" color="blue.700" fontWeight="semibold">Vị trí ghế:</Text>{" "}
-                      {seat?.seatNumber || "?"} - Tầng {seat?.floor || "?"} - Toa {carriage?.carriageListId || "?"} - Khoang {compartment?.compartmentName || "?"}
+                      {seat?.seatNumber || "?"} - Tầng {seat?.floor || "?"} - Toa {carriage?.stt || "?"} - Khoang {compartment?.compartmentName || "?"}
                     </Text>
                     <Text><Text as="span" color="blue.700" fontWeight="semibold">Giá:</Text> {ticket.totalPrice ? `${ticket.totalPrice} VND` : "Chưa có giá"}</Text>
                     

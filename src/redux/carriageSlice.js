@@ -1,12 +1,15 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // Lấy danh sách toa và ghế theo tripId
 export const fetchCarriagesByTrip = createAsyncThunk(
   "carriage/fetchCarriagesByTrip",
   async ({ tripId, departureStationId, arrivalStationId }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`http://localhost:8080/api/trains/${tripId}/carriages`, {
+      
+      const response = await axios.post(`${API_BASE_URL}trains/${tripId}/carriages`, {
         tripId,
         departureStationId,
         arrivalStationId,
