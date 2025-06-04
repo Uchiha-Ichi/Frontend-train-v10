@@ -59,7 +59,7 @@ export default function Home() {
   useEffect(() => {
     const fetchStations = async () => {
       try {
-        const response = await fetch("http://localhost:8080/station/all");
+        const response = await fetch("http://localhost:8080/api/station/all");
         if (!response.ok) {
           toast.error("Can't fetch all the stations", {
             position: "bottom-right",
