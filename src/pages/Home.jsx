@@ -139,6 +139,7 @@ export default function Home() {
         const stationData = data.map((station) => ({
           stationId: station.stationId,
           stationName: station.stationName,
+          // location: station.location,
         }));
         setStations(stationData);
       } catch (error) {
