@@ -51,6 +51,13 @@ const stationSearchSlice = createSlice({
     setCurrentTrip: (state, action) => {
       state.currentTrip = action.payload;
     },
+    resetSearch: (state) => {
+      state.trips = [];
+      state.currentTrip = null;
+      state.loading = false;
+      state.error = null;
+    },
+
   },
   extraReducers: (builder) => {
     builder

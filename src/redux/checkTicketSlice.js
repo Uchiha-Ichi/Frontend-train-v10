@@ -7,7 +7,9 @@ export const searchTicketById = createAsyncThunk(
   "checkTicket/searchTicketById",
   async (ticketId, { rejectWithValue }) => {
     try {
+      console.log("ticketId", ticketId);
       const response = await axios.post(`${API_BASE_URL}tickets/searchTicket`, { ticketId });
+      console.log("searchTicketById response", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -16,17 +18,17 @@ export const searchTicketById = createAsyncThunk(
 );
 
 export const searchTicketsByReservationCode = createAsyncThunk(
-    "checkTicket/searchTicketsByReservationCode",
-    async (reservationCode, { rejectWithValue }) => {
-      try {
-        const response = await axios.post(`${API_BASE_URL}tickets/searchByReservationCode`, { reservationCode });
-        return response.data; // Đây là danh sách vé
-      } catch (error) {
-        return rejectWithValue(error.response?.data || error.message);
-      }
+  "checkTicket/searchTicketsByReservationCode",
+  async (reservationCode, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}tickets/searchByReservationCode`, { reservationCode });
+      return response.data; // Đây là danh sách vé
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
     }
-  );
-  
+  }
+);
+
 
 const checkTicketSlice = createSlice({
   name: "checkTicket",
