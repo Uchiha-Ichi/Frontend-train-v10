@@ -31,7 +31,7 @@ export const reserveTicket = createAsyncThunk(
             const response = await axios.post(`${API_BASE_URL}tickets/reserve`, ticketReservationDTO);
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || "L��i khi đặt vé");
+            return rejectWithValue(error.response?.data?.message);
         }
     }
 )

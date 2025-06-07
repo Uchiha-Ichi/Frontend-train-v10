@@ -126,13 +126,12 @@ export default function Home() {
       navigate("/booking");
     };
 
-  useEffect(() => {
+   useEffect(() => {
     const fetchStations = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/api/station/all");
-
+      try { 
+        const response = await fetch(`${API_BASE_URL}station/all`);
         if (!response.ok) {
-          console.error("Failed to fetch stations");
+          console.error("Failed to fetch stations");  
           return;
         }
 
@@ -140,6 +139,7 @@ export default function Home() {
         const stationData = data.map((station) => ({
           stationId: station.stationId,
           stationName: station.stationName,
+          // location: station.location,
         }));
         setStations(stationData);
       } catch (error) {

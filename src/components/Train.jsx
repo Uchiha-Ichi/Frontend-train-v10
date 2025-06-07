@@ -103,6 +103,22 @@ const Car = ({
       const reservationResponse = await dispatch(
         reserveTicket(ticketReservationDTO)
       );
+      if (reservationResponse.error) {
+        dispatch(
+          fetchSeat({
+            tripId: currentTrip.tripId,
+            from: currentTrip.departureStation,
+            to: currentTrip.arrivalStation,
+          })
+        )
+        const errorMessage =
+          reservationResponse.payload || "Vé đã được đặt trước.";
+        toast.error(errorMessage, {
+          position: "bottom-right",
+          autoClose: 4000,
+        });
+        return;
+      }
       const reservation = reservationResponse.payload;
       dispatch(
         selectSeat({
@@ -136,13 +152,14 @@ const Car = ({
           })
         );
         dispatch(deleteReserveTicket(ticketReservationDTO));
-        dispatch(
-          fetchSeat({
-            tripId: currentTrip.tripId,
-            from: currentTrip.departureStation,
-            to: currentTrip.arrivalStation,
-          })
-        )
+        // dispatch(
+        //   fetchSeat({
+        //     tripId: currentTrip.tripId,
+        //     from: currentTrip.departureStation,
+        //     to: currentTrip.arrivalStation,
+        //   })
+        // )
+
       }
     }, 10 * 60 * 1000);
   };

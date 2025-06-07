@@ -27,7 +27,7 @@ const PaymentSuccess = () => {
         };
 
         checkPaymentStatus();
-        // navigate("/");
+        navigate("/");
     }, []);
 
 

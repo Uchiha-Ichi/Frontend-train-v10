@@ -84,7 +84,7 @@ export default function Infomation() {
       };
       console.log("payload", payload);
 
-      const totalAmount = getTotalAmount() || 0;;
+      const totalAmount = getTotalAmount || 0;;
       let requestData = { customer: customerInfo.fullName, amount: totalAmount };
       // console.log("reqData", requestData); 
       //  const response = await fetch("${API_BASE_URL}station/all");
