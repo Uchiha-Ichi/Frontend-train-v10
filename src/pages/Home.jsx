@@ -1,36 +1,32 @@
 import React, { useEffect, useState, useContext } from "react";
 import { ToastContainer } from "react-toastify";
-import { Flex, Container, Button, Stack } from "@chakra-ui/react";
+import { Flex, Container, Button, Stack, Input, Box } from "@chakra-ui/react";
 import { useDispatch } from "react-redux";
-
-import { RouteContext } from "../store/RouteContext";
-import Calendar from "../components/Calendar/Calendar";
-import DatePicker from "../components/DatePicker/DatePicker";
-import Autocomplete from "../utils/Autocomplete";
-import { featchTicketType } from "../redux/ticketType";
-
 import { useNavigate } from "react-router-dom";
-
-
+import { RouteContext } from "../store/RouteContext";
+import { featchTicketType } from "../redux/ticketType";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const SearchForm = ({ state, handleFromChange, handleToChange, stations, onSearch }) => {
   const [fromError, setFromError] = useState("");
   const [toError, setToError] = useState("");
+  const [dateError, setDateError] = useState("");
 
   const handleSearch = () => {
-    // Xóa lỗi cũ
     setFromError("");
     setToError("");
+    setDateError("");
 
-    // Validate stations
     const isFromValid = stations.some(
       (station) => station.stationName.toLowerCase() === state.from.toLowerCase()
     );
     const isToValid = stations.some(
       (station) => station.stationName.toLowerCase() === state.to.toLowerCase()
     );
+    
+    const today = new Date().setHours(0, 0, 0, 0);
+    const selectedDate = state.date ? new Date(state.date).setHours(0, 0, 0, 0) : null;
 
     let hasError = false;
 
@@ -50,52 +46,56 @@ const SearchForm = ({ state, handleFromChange, handleToChange, stations, onSearc
       hasError = true;
     }
 
+    if (!state.date || selectedDate < today) {
+      setDateError("Vui lòng chọn ngày không trong quá khứ");
+      hasError = true;
+    }
+
     if (hasError) {
       return;
     }
 
-    // Nếu tất cả validate hợp lệ, gọi onSearch để chuyển hướng
     onSearch();
   };
 
   return (
-    <Stack gap="4" align="flex-start">
-      <div>
-        <Autocomplete
-          label="Ga đi"
+    <Stack spacing={4} align="flex-start">
+      <Box>
+        <Box as="label" fontWeight="medium" mb={1} display="block">
+          Ga đi
+        </Box>
+        <Input
           value={state.from}
           onChange={handleFromChange}
-          options={stations}
+          placeholder="Nhập ga đi"
+          isInvalid={!!fromError}
         />
         {fromError && (
-          <div style={{ color: "red", fontSize: "12px", marginTop: "4px" }}>
+          <Box color="red.500" fontSize="sm" mt={1}>
             {fromError}
-          </div>
+          </Box>
         )}
-      </div>
-      <div>
-        <Autocomplete
-          label="Ga đến"
+      </Box>
+      <Box>
+        <Box as="label" fontWeight="medium" mb={1} display="block">
+          Ga đến
+        </Box>
+        <Input
           value={state.to}
           onChange={handleToChange}
-          options={stations}
+          placeholder="Nhập ga đến"
+          isInvalid={!!toError}
         />
         {toError && (
-          <div style={{ color: "red", fontSize: "12px", marginTop: "4px" }}>
+          <Box color="red.500" fontSize="sm" mt={1}>
             {toError}
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
       <Button
         onClick={handleSearch}
+        colorScheme="blue"
         _hover={{ textDecoration: "underline" }}
-        _after={{
-          content: '""',
-          display: "block",
-          height: "2px",
-          bg: "black",
-          transition: "width 0.3s",
-        }}
       >
         Tìm kiếm
       </Button>
@@ -103,32 +103,25 @@ const SearchForm = ({ state, handleFromChange, handleToChange, stations, onSearc
   );
 };
 
-// Home component
 export default function Home() {
   const dispatch = useDispatch();
-  // Trong Home component
   const navigate = useNavigate();
-  // Sử dụng useContext để lấy state và các hàm set
-  // từ RouteContext    
-
-
-  const { state, handleSetFrom, handleSetTo, handleSetDate } =
-    useContext(RouteContext);
-
+  const { state, handleSetFrom, handleSetTo, handleSetDate } = useContext(RouteContext);
   const [stations, setStations] = useState([]);
 
   const handleFromChange = (e) => handleSetFrom(e.target.value);
   const handleToChange = (e) => handleSetTo(e.target.value);
-  const handleDateChange = (date) => handleSetDate(date);
 
-    const handleSearch = () => {
-      // window.location.href = "/booking"; // Hoặc dùng navigate nếu dùng react-router
-      navigate("/booking");
-    };
+  const handleSearch = () => {
+    navigate("/booking");
+  };
+
+  // Get today's date in YYYY-MM-DD format for min attribute
+  const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     const fetchStations = async () => {
-      try { 
+      try {
         const response = await fetch(`${API_BASE_URL}station/all`);
         if (!response.ok) {
           console.error("Failed to fetch stations");
@@ -139,37 +132,37 @@ export default function Home() {
         const stationData = data.map((station) => ({
           stationId: station.stationId,
           stationName: station.stationName,
-          // location: station.location,
         }));
         setStations(stationData);
       } catch (error) {
         console.error("Fetch failed:", error);
       }
     };
-    dispatch(featchTicketType());
 
+    dispatch(featchTicketType());
     fetchStations();
   }, [dispatch]);
 
   return (
-    <Container maxW="container.xl" p={16}>
+    <Container maxW="container.xl" p={8}>
       <ToastContainer />
-
-      {/* Desktop view */}
-      <Flex display={{ base: "none", md: "flex" }} gap="16" justify="center">
-        <Calendar onDateChange={handleDateChange} />
-        <SearchForm
-          state={state}
-          handleFromChange={handleFromChange}
-          handleToChange={handleToChange}
-          stations={stations}
-          onSearch={handleSearch}
-        />
-      </Flex>
-
-      {/* Mobile view */}
-      <Flex display={{ base: "flex", md: "none" }} direction="column">
-        <DatePicker onChange={handleDateChange} />
+      <Flex gap={6} justify="center" direction={{ base: "column", md: "row" }}>
+        <Box>
+          <Box as="label" fontWeight="medium" mb={1} display="block">
+            Chọn ngày
+          </Box>
+          <Input
+            type="date"
+            onChange={(e) => handleSetDate(e.target.value)}
+            min={today}
+            isInvalid={state.date && new Date(state.date) < new Date(today)}
+          />
+          {state.date && new Date(state.date) < new Date(today) && (
+            <Box color="red.500" fontSize="sm" mt={1}>
+              Vui lòng chọn ngày không trong quá khứ
+            </Box>
+          )}
+        </Box>
         <SearchForm
           state={state}
           handleFromChange={handleFromChange}
@@ -181,6 +174,402 @@ export default function Home() {
     </Container>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useEffect, useState, useContext } from "react";
+// import { ToastContainer } from "react-toastify";
+// import { Flex, Container, Button, Stack, Input, Box } from "@chakra-ui/react";
+// import { useDispatch } from "react-redux";
+// import { useNavigate } from "react-router-dom";
+// import { RouteContext } from "../store/RouteContext";
+// import { featchTicketType } from "../redux/ticketType";
+
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// const SearchForm = ({ state, handleFromChange, handleToChange, stations, onSearch }) => {
+//   const [fromError, setFromError] = useState("");
+//   const [toError, setToError] = useState("");
+
+//   const handleSearch = () => {
+//     setFromError("");
+//     setToError("");
+
+//     const isFromValid = stations.some(
+//       (station) => station.stationName.toLowerCase() === state.from.toLowerCase()
+//     );
+//     const isToValid = stations.some(
+//       (station) => station.stationName.toLowerCase() === state.to.toLowerCase()
+//     );
+
+//     let hasError = false;
+
+//     if (!state.from || !isFromValid) {
+//       setFromError("Vui lòng chọn Ga đi hợp lệ");
+//       hasError = true;
+//     }
+
+//     if (!state.to || !isToValid) {
+//       setToError("Vui lòng chọn Ga đến hợp lệ");
+//       hasError = true;
+//     }
+
+//     if (state.from && state.to && state.from.toLowerCase() === state.to.toLowerCase()) {
+//       setFromError("Ga đi và Ga đến không được trùng nhau");
+//       setToError("Ga đi và Ga đến không được trùng nhau");
+//       hasError = true;
+//     }
+
+//     if (hasError) {
+//       return;
+//     }
+
+//     onSearch();
+//   };
+
+//   return (
+//     <Stack spacing={4} align="flex-start">
+//       <Box>
+//         <Box as="label" fontWeight="medium" mb={1} display="block">
+//           Ga đi
+//         </Box>
+//         <Input
+//           value={state.from}
+//           onChange={handleFromChange}
+//           placeholder="Nhập ga đi"
+//           isInvalid={!!fromError}
+//         />
+//         {fromError && (
+//           <Box color="red.500" fontSize="sm" mt={1}>
+//             {fromError}
+//           </Box>
+//         )}
+//       </Box>
+//       <Box>
+//         <Box as="label" fontWeight="medium" mb={1} display="block">
+//           Ga đến
+//         </Box>
+//         <Input
+//           value={state.to}
+//           onChange={handleToChange}
+//           placeholder="Nhập ga đến"
+//           isInvalid={!!toError}
+//         />
+//         {toError && (
+//           <Box color="red.500" fontSize="sm" mt={1}>
+//             {toError}
+//           </Box>
+//         )}
+//       </Box>
+//       <Button
+//         onClick={handleSearch}
+//         colorScheme="blue"
+//         _hover={{ textDecoration: "underline" }}
+//       >
+//         Tìm kiếm
+//       </Button>
+//     </Stack>
+//   );
+// };
+
+// export default function Home() {
+//   const dispatch = useDispatch();
+//   const navigate = useNavigate();
+//   const { state, handleSetFrom, handleSetTo, handleSetDate } = useContext(RouteContext);
+//   const [stations, setStations] = useState([]);
+
+//   const handleFromChange = (e) => handleSetFrom(e.target.value);
+//   const handleToChange = (e) => handleSetTo(e.target.value);
+
+//   const handleSearch = () => {
+//     navigate("/booking");
+//   };
+
+//   useEffect(() => {
+//     const fetchStations = async () => {
+//       try {
+//         const response = await fetch(`${API_BASE_URL}station/all`);
+//         if (!response.ok) {
+//           console.error("Failed to fetch stations");
+//           return;
+//         }
+
+//         const data = await response.json();
+//         const stationData = data.map((station) => ({
+//           stationId: station.stationId,
+//           stationName: station.stationName,
+//         }));
+//         setStations(stationData);
+//       } catch (error) {
+//         console.error("Fetch failed:", error);
+//       }
+//     };
+
+//     dispatch(featchTicketType());
+//     fetchStations();
+//   }, [dispatch]);
+
+//   return (
+//     <Container maxW="container.xl" p={8}>
+//       <ToastContainer />
+//       <Flex gap={6} justify="center" direction={{ base: "column", md: "row" }}>
+//         <Box>
+//           <Box as="label" fontWeight="medium" mb={1} display="block">
+//             Chọn ngày
+//           </Box>
+//           <Input
+//             type="date"
+//             onChange={(e) => handleSetDate(e.target.value)}
+//           />
+//         </Box>
+//         <SearchForm
+//           state={state}
+//           handleFromChange={handleFromChange}
+//           handleToChange={handleToChange}
+//           stations={stations}
+//           onSearch={handleSearch}
+//         />
+//       </Flex>
+//     </Container>
+//   );
+// }
+
+
+
+
+
+
+
+
+// import React, { useEffect, useState, useContext } from "react";
+// import { ToastContainer } from "react-toastify";
+// import { Flex, Container, Button, Stack } from "@chakra-ui/react";
+// import { useDispatch } from "react-redux";
+
+// import { RouteContext } from "../store/RouteContext";
+// import Calendar from "../components/Calendar/Calendar";
+// import DatePicker from "../components/DatePicker/DatePicker";
+// import Autocomplete from "../utils/Autocomplete";
+// import { featchTicketType } from "../redux/ticketType";
+
+
+// import { useNavigate } from "react-router-dom";
+
+
+
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// const SearchForm = ({ state, handleFromChange, handleToChange, stations, onSearch }) => {
+//   const [fromError, setFromError] = useState("");
+//   const [toError, setToError] = useState("");
+
+//   const handleSearch = () => {
+//     // Xóa lỗi cũ
+//     setFromError("");
+//     setToError("");
+
+//     // Validate stations
+//     const isFromValid = stations.some(
+//       (station) => station.stationName.toLowerCase() === state.from.toLowerCase()
+//     );
+//     const isToValid = stations.some(
+//       (station) => station.stationName.toLowerCase() === state.to.toLowerCase()
+//     );
+
+//     let hasError = false;
+
+//     if (!state.from || !isFromValid) {
+//       setFromError("Vui lòng chọn Ga đi hợp lệ");
+//       hasError = true;
+//     }
+
+//     if (!state.to || !isToValid) {
+//       setToError("Vui lòng chọn Ga đến hợp lệ");
+//       hasError = true;
+//     }
+
+//     if (state.from && state.to && state.from.toLowerCase() === state.to.toLowerCase()) {
+//       setFromError("Ga đi và Ga đến không được trùng nhau");
+//       setToError("Ga đi và Ga đến không được trùng nhau");
+//       hasError = true;
+//     }
+
+//     if (hasError) {
+//       return;
+//     }
+
+//     // Nếu tất cả validate hợp lệ, gọi onSearch để chuyển hướng
+//     onSearch();
+//   };
+
+//   return (
+//     <Stack gap="4" align="flex-start">
+//       <div>
+//         <Autocomplete
+//           label="Ga đi"
+//           value={state.from}
+//           onChange={handleFromChange}
+//           options={stations}
+//         />
+//         {fromError && (
+//           <div style={{ color: "red", fontSize: "12px", marginTop: "4px" }}>
+//             {fromError}
+//           </div>
+//         )}
+//       </div>
+//       <div>
+//         <Autocomplete
+//           label="Ga đến"
+//           value={state.to}
+//           onChange={handleToChange}
+//           options={stations}
+//         />
+//         {toError && (
+//           <div style={{ color: "red", fontSize: "12px", marginTop: "4px" }}>
+//             {toError}
+//           </div>
+//         )}
+//       </div>
+//       <Button
+//         onClick={handleSearch}
+//         _hover={{ textDecoration: "underline" }}
+//         _after={{
+//           content: '""',
+//           display: "block",
+//           height: "2px",
+//           bg: "black",
+//           transition: "width 0.3s",
+//         }}
+//       >
+//         Tìm kiếm
+//       </Button>
+//     </Stack>
+//   );
+// };
+
+// // Home component
+// export default function Home() {
+//   const dispatch = useDispatch();
+//   // Trong Home component
+//   const navigate = useNavigate();
+//   // Sử dụng useContext để lấy state và các hàm set
+//   // từ RouteContext    
+
+
+//   const { state, handleSetFrom, handleSetTo, handleSetDate } =
+//     useContext(RouteContext);
+
+//   const [stations, setStations] = useState([]);
+
+//   const handleFromChange = (e) => handleSetFrom(e.target.value);
+//   const handleToChange = (e) => handleSetTo(e.target.value);
+//   const handleDateChange = (date) => handleSetDate(date);
+
+//     const handleSearch = () => {
+//       // window.location.href = "/booking"; // Hoặc dùng navigate nếu dùng react-router
+//       navigate("/booking");
+//     };
+
+//   useEffect(() => {
+//     const fetchStations = async () => {
+//       try { 
+//         // dispatch(fetchAllStations()); // Gọi action để lấy danh sách ga
+//         const response = await fetch(`${API_BASE_URL}station/all`);
+//         if (!response.ok) {
+//           console.error("Failed to fetch stations");
+//           return;
+//         }
+
+//         const data = await response.json(); 
+//         const stationData = data.map((station) => ({
+//           stationId: station.stationId,
+//           stationName: station.stationName,
+//           // location: station.location,
+//         }));
+//         setStations(stationData);
+//       } catch (error) {
+//         console.error("Fetch failed:", error);
+//       }
+//     };
+//     dispatch(featchTicketType());
+
+//     fetchStations();
+//   }, [dispatch]);
+
+//   return (
+//     <Container maxW="container.xl" p={16}>
+//       <ToastContainer />
+
+//       {/* Desktop view */}
+//       <Flex display={{ base: "none", md: "flex" }} gap="16" justify="center">
+//         <Calendar onDateChange={handleDateChange} />
+//         <SearchForm
+//           state={state}
+//           handleFromChange={handleFromChange}
+//           handleToChange={handleToChange}
+//           stations={stations}
+//           onSearch={handleSearch}
+//         />
+//       </Flex>
+
+//       {/* Mobile view */}
+//       <Flex display={{ base: "flex", md: "none" }} direction="column">
+//         <DatePicker onChange={handleDateChange} />
+//         <SearchForm
+//           state={state}
+//           handleFromChange={handleFromChange}
+//           handleToChange={handleToChange}
+//           stations={stations}
+//           onSearch={handleSearch}
+//         />
+//       </Flex>
+//     </Container>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+//-----------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
