@@ -119,12 +119,12 @@ export default function Home() {
   // Get today's date in YYYY-MM-DD format for min attribute
   const today = new Date().toISOString().split('T')[0];
 
-  useEffect(() => {
+   useEffect(() => {
     const fetchStations = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}station/all`);
         if (!response.ok) {
-          console.error("Failed to fetch stations");
+          console.error("Failed to fetch stations");  
           return;
         }
 

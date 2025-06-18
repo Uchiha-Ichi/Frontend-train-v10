@@ -5,7 +5,7 @@ export const fetchSeat = createAsyncThunk(
   "fetchSeat/fetch",
   async ({ tripId, from, to }, { rejectWithValue }) => {
     try {
-       console.log("tripId", tripId);
+      console.log("tripId", tripId);
       const response = await axios.post(
         `${API_BASE_URL}carriages/seats`,
         {
@@ -34,7 +34,7 @@ const seatSlice = createSlice({
   },
   reducers: {
     selectSeat: (state, action) => {
-      const { seatId, seatName, stt, ticketPrice, reservation, departureTime, 
+      const { seatId, seatName, stt, ticketPrice, reservation, departureTime,
         expire } = action.payload; // seatId và ticketPrice từ action
 
       // Kiểm tra xem ghế đã được chọn chưa
@@ -50,6 +50,7 @@ const seatSlice = createSlice({
         );
         state.totalPrice -= ticketPrice;
       } else {
+        console.log("Ghế chưa được chọn:", seatName);
         // Nếu ghế chưa được chọn, thêm ghế vào danh sách và cộng thêm giá trị của ghế
         state.selectedSeats.push({ seatId, seatName, stt, ticketPrice, reservation, departureTime, expire });
         state.totalPrice += ticketPrice;

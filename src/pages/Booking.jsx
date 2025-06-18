@@ -393,6 +393,7 @@ export default function BookingPage() {
         autoClose: 4000,
       });
       setTimeout(() => {
+        dispatch(resetSearch());
         navigate("/");
       }, 2000);
       return;
@@ -404,6 +405,7 @@ export default function BookingPage() {
         autoClose: 4000,
       });
       setTimeout(() => {
+        dispatch(resetSearch());
         navigate("/");
       }, 2000);
       return;
@@ -432,6 +434,10 @@ export default function BookingPage() {
             position: "bottom-right",
             autoClose: 4000,
           });
+          setTimeout(() => {
+            // Reset search state
+            navigate("/");
+          }, 2000);
         } else if (status === 400 || message === "Invalid date format") {
           // 400: Invalid input
           toast.error("Dữ liệu tìm kiếm không hợp lệ. Vui lòng kiểm tra lại!", {
@@ -478,7 +484,7 @@ export default function BookingPage() {
         {!loading && error && (
           <Text color="red.500" textAlign="center" mb={6}>
             {error.message === "No trips found for the given stations and date" ||
-            error.status === 500
+              error.status === 500
               ? "Không tìm thấy chuyến tàu, hiện tại chưa có"
               : `Lỗi: ${error.message || error}`}
           </Text>

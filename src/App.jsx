@@ -33,6 +33,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import { RouteProvider } from "./store/RouteContext";
 import { clearSelectedSeats } from "./redux/seatSlice";
 import { deleteReserveTicket } from "./redux/ticketReservationSlice";
+import { resetSearch } from "./redux/stationSearchSlice";
 function App() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -52,6 +53,7 @@ function App() {
       };
       await dispatch(deleteReserveTicket(ticketReservationDTO))
     }
+    dispatch(resetSearch());
     dispatch(clearSelectedSeats());
   }
   return (
@@ -199,7 +201,7 @@ function App() {
             <Route path="/booking" element={<Booking />} />
             <Route path="/info" element={<Infomation />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
-        
+
             {/* Redirect unknown routes to Home */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
